@@ -18,21 +18,30 @@ const estudios = [
     extra:
       "Materias como Estructuras de Datos, Redes, Seguridad Informática y más.",
     imgSrc: "/REACT.png",
-    year: "2021",
+    year: "2024",
   },
   {
     title: "Certificación SAP ABAP",
     description: "Desarrollo sistema en lenguaje ABAP.",
     extra: "Curso disctado por parte de DL Consultores.",
     imgSrc: "/ABAP.jpg",
-    year: "2020",
+    year: "2024",
+  },
+  {
+    title: "Ingeniería en Sistemas",
+    description:
+      "Carrera universitaria con enfoque en arquitectura de software.",
+    extra:
+      "Materias como Estructuras de Datos, Redes, Seguridad Informática y más.",
+    imgSrc: "/JOBIC.jpg",
+    year: "2024",
   },
   {
     title: "Autodidacta",
     description: "Aprendizaje continuo en tecnologías web modernas.",
     extra: "React, Firebase, Tailwind, Next.js, testing, patrones de diseño.",
     imgSrc: "https://via.placeholder.com/400x300?text=Autodidacta",
-    year: "Desde 2018",
+    year: "Desde 2021",
   },
 ];
 
