@@ -1,4 +1,4 @@
-import { SiGithub, SiLinkedin, SiGmail, SiFacebook } from "react-icons/si"
+import { SiGithub, SiLinkedin, SiGmail, SiFacebook, SiWhatsapp } from "react-icons/si"
 import { motion } from "framer-motion"
 
 export default function Footer() {
@@ -26,6 +26,12 @@ export default function Footer() {
       Icon: SiFacebook,
       label: "Facebook",
       color: "#3034ec", 
+    },
+     {
+      href: "https://wa.me/5493447432091", 
+      Icon: SiWhatsapp,
+      label: "WhatsApp",
+      color: "#25D366",
     },
   ]
 

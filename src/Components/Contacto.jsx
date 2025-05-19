@@ -54,7 +54,7 @@ export default function Contacto() {
     >
       <motion.div
         className={`max-w-3xl w-full bg-cyan-900/20 backdrop-blur-xl rounded-2xl shadow-xl p-6 sm:p-12 border border-white/20 ${shake ? "animate-shake" : ""}`}
-        whileHover={{ boxShadow: "0 10px 40px rgba(6, 182, 212, 0.8)" }}
+        whileHover={{ boxShadow: "0 10px 40px rgba(43, 161, 182, 0.856)" }}
         transition={{ type: "spring", stiffness: 150, damping: 20 }}
       >
         <h3 className="text-3xl sm:text-4xl font-bold text-white mb-10 text-center tracking-wide">
@@ -71,7 +71,7 @@ export default function Contacto() {
               placeholder="Nombre"
               value={formData.name}
               onChange={handleChange}
-              className="w-full pl-12 pr-4 py-3 rounded-2xl bg-blue-400/20 border border-cyan-400/70 text-white placeholder-cyan-400/80 shadow-inner focus:outline-none focus:ring-2 focus:ring-cyan-300 transition"
+              className="w-full pl-12 pr-4 py-3 rounded-2xl bg-blue-300/20 border border-cyan-400/70 text-white placeholder-cyan-400/80 shadow-inner focus:outline-none focus:ring-2 focus:ring-cyan-300 transition"
             />
           </motion.div>
 
@@ -84,7 +84,7 @@ export default function Contacto() {
               placeholder="Email"
               value={formData.email}
               onChange={handleChange}
-              className="w-full pl-12 pr-4 py-3 rounded-2xl bg-blue-400/20 border border-cyan-400/70 text-white placeholder-cyan-400/80 shadow-inner focus:outline-none focus:ring-2 focus:ring-cyan-300 transition"
+              className="w-full pl-12 pr-4 py-3 rounded-2xl bg-blue-300/20 border border-cyan-400/70 text-white placeholder-cyan-400/80 shadow-inner focus:outline-none focus:ring-2 focus:ring-cyan-300 transition"
             />
           </motion.div>
 
@@ -97,7 +97,7 @@ export default function Contacto() {
               rows="6"
               value={formData.message}
               onChange={handleChange}
-              className="w-full pl-12 pr-4 py-3 rounded-2xl bg-blue-400/20 border border-cyan-400/70 text-white placeholder-cyan-400/80 shadow-inner focus:outline-none focus:ring-2 focus:ring-cyan-300 transition resize-none"
+              className="w-full pl-12 pr-4 py-3 rounded-2xl bg-blue-300/20 border border-cyan-400/70 text-white placeholder-cyan-400/80 shadow-inner focus:outline-none focus:ring-2 focus:ring-cyan-300 transition resize-none"
             />
           </motion.div>
 

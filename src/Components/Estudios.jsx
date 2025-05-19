@@ -3,44 +3,44 @@ import { motion, AnimatePresence } from "framer-motion";
 
 const estudios = [
   {
-    title: "Desarrollo Web Full Stack",
+    title: "Técnico Superior en Programación",
     description:
-      "Curso intensivo en JavaScript, React, Node.js y bases de datos.",
+      "Carrera de grado en la Universidad Tecnologica Nacional",
     extra:
-      "Incluye proyectos reales, Git, REST APIs, MongoDB y despliegue en la nube.",
-    imgSrc: "/fullstack.jpg",
-    year: "2023",
+      "Primeros pasos en la programacion, aprobando todas las materias en tiempo y forma. Practica final en grupo aprobada con una nota final de 8",
+    imgSrc: "/TITULO.jpeg",
+    year: "2018",
   },
   {
-    title: "Ingeniería en Sistemas",
+    title: "Curso REACT JS",
     description:
-      "Carrera universitaria con enfoque en arquitectura de software.",
+      "Curso didactico a distancia en la plataforma CODERHOUSE.",
     extra:
-      "Materias como Estructuras de Datos, Redes, Seguridad Informática y más.",
+      "Uso de Visual Studio Code, React + vite como framework, Firebase como Base de Datos No relacional. Uso de librerías externas como Boostrap, React Router, entre otras.",
     imgSrc: "/REACT.png",
     year: "2024",
   },
   {
     title: "Certificación SAP ABAP",
-    description: "Desarrollo sistema en lenguaje ABAP.",
+    description: "Curso de introduccion y aplicacion real de sistemas.",
     extra: "Curso disctado por parte de DL Consultores.",
     imgSrc: "/ABAP.jpg",
     year: "2024",
   },
   {
-    title: "Ingeniería en Sistemas",
+    title: "Jornadas Informaticas",
     description:
-      "Carrera universitaria con enfoque en arquitectura de software.",
+      "Participacion en la 4ta jornada binacional de Informática y Comunicaciones ",
     extra:
-      "Materias como Estructuras de Datos, Redes, Seguridad Informática y más.",
+      "Organizada por la comisión técnica mixta de Salto Grande.",
     imgSrc: "/JOBIC.jpg",
-    year: "2024",
+    year: "2015",
   },
   {
     title: "Autodidacta",
-    description: "Aprendizaje continuo en tecnologías web modernas.",
-    extra: "React, Firebase, Tailwind, Next.js, testing, patrones de diseño.",
-    imgSrc: "https://via.placeholder.com/400x300?text=Autodidacta",
+    description: "Aprendizaje continuo en tecnologías modernas.",
+    extra: "React, Firebase, Tailwind, Next.js, testing, Python, Unity 3D, patrones de diseño.",
+    imgSrc: "/PLATAFORMAS.png",
     year: "Desde 2021",
   },
 ];
@@ -57,7 +57,7 @@ export default function Estudios() {
     <section id="estudios" className="py-20 text-white">
       <div className="max-w-6xl mx-auto px-6">
         <h3 className="text-4xl font-bold text-center mb-16">
-          Certificados & Estudios
+          Estudios & Certificados
         </h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10">
           {estudios.map(({ title, description, imgSrc, year, extra }, i) => (

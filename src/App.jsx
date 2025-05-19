@@ -6,6 +6,7 @@
   import Footer from "./Components/Footer";
   import { useState, useEffect } from "react"
   import Estudios from "./Components/Estudios";
+import SobreMi from "./Components/SobreMi";
 
 
   export default function App() {
@@ -30,6 +31,7 @@
           <Servicios />
           <Proyectos />
           <Estudios />
+          <SobreMi />
           <Contacto />
           </div>
         </main>
