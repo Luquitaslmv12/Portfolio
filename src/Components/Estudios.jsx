@@ -1,26 +1,30 @@
-import { useState } from "react"
-import { motion, AnimatePresence } from "framer-motion"
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 
 const estudios = [
   {
     title: "Desarrollo Web Full Stack",
-    description: "Curso intensivo en JavaScript, React, Node.js y bases de datos.",
-    extra: "Incluye proyectos reales, Git, REST APIs, MongoDB y despliegue en la nube.",
+    description:
+      "Curso intensivo en JavaScript, React, Node.js y bases de datos.",
+    extra:
+      "Incluye proyectos reales, Git, REST APIs, MongoDB y despliegue en la nube.",
     imgSrc: "/fullstack.jpg",
     year: "2023",
   },
   {
     title: "Ingeniería en Sistemas",
-    description: "Carrera universitaria con enfoque en arquitectura de software.",
-    extra: "Materias como Estructuras de Datos, Redes, Seguridad Informática y más.",
-    imgSrc: "https://via.placeholder.com/400x300?text=Ingeniería",
+    description:
+      "Carrera universitaria con enfoque en arquitectura de software.",
+    extra:
+      "Materias como Estructuras de Datos, Redes, Seguridad Informática y más.",
+    imgSrc: "/REACT.png",
     year: "2021",
   },
   {
-    title: "Certificación UX/UI Design",
-    description: "Diseño de interfaces centradas en el usuario.",
-    extra: "Herramientas: Figma, Adobe XD, pruebas de usabilidad, wireframes.",
-    imgSrc: "/uxui.jpg",
+    title: "Certificación SAP ABAP",
+    description: "Desarrollo sistema en lenguaje ABAP.",
+    extra: "Curso disctado por parte de DL Consultores.",
+    imgSrc: "/ABAP.jpg",
     year: "2020",
   },
   {
@@ -30,20 +34,22 @@ const estudios = [
     imgSrc: "https://via.placeholder.com/400x300?text=Autodidacta",
     year: "Desde 2018",
   },
-]
+];
 
 export default function Estudios() {
-  const [expanded, setExpanded] = useState(null)
-  const [modalImg, setModalImg] = useState(null)
+  const [expanded, setExpanded] = useState(null);
+  const [modalImg, setModalImg] = useState(null);
 
   const toggleExpand = (index) => {
-    setExpanded(expanded === index ? null : index)
-  }
+    setExpanded(expanded === index ? null : index);
+  };
 
   return (
     <section id="estudios" className="py-20 text-white">
       <div className="max-w-6xl mx-auto px-6">
-        <h3 className="text-4xl font-bold text-center mb-16">Certificados & Estudios</h3>
+        <h3 className="text-4xl font-bold text-center mb-16">
+          Certificados & Estudios
+        </h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10">
           {estudios.map(({ title, description, imgSrc, year, extra }, i) => (
             <motion.div
@@ -123,5 +129,5 @@ export default function Estudios() {
         )}
       </AnimatePresence>
     </section>
-  )
+  );
 }
