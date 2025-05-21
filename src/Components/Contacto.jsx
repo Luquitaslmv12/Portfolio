@@ -20,6 +20,9 @@ export default function Contacto() {
   const [success, setSuccess] = useState(false);
   const [shake, setShake] = useState(false);
 
+  const phoneNumber = "5493447432091"; // Cambia por tu número con código internacional sin "+"
+  const message = encodeURIComponent("Hola, quisiera más información");
+
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
     setError("");
