@@ -7,6 +7,7 @@
   import { useState, useEffect } from "react"
   import Estudios from "./Components/Estudios";
 import SobreMi from "./Components/SobreMi";
+import PricingPlans from "./Components/PricingPlans";
 
 
   export default function App() {
@@ -32,6 +33,7 @@ import SobreMi from "./Components/SobreMi";
           <Proyectos />
           <Estudios />
           <SobreMi />
+          {/* <PricingPlans /> */}
           <Contacto />
           </div>
         </main>

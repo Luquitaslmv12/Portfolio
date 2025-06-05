@@ -20,8 +20,18 @@ export default function Contacto() {
   const [success, setSuccess] = useState(false);
   const [shake, setShake] = useState(false);
 
+  const isMobile = () => {
+  return /Android|iPhone|iPad|iPod|Windows Phone/i.test(navigator.userAgent);
+};
+
   const phoneNumber = "5493447432091"; // Cambia por tu número con código internacional sin "+"
   const message = encodeURIComponent("Hola, quisiera más información");
+
+const whatsappURL = isMobile()
+  ? `https://api.whatsapp.com/send?phone=${phoneNumber}&text=${message}`
+  : `https://web.whatsapp.com/send?phone=${phoneNumber}&text=${message}`;
+
+
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -43,14 +53,14 @@ export default function Contacto() {
     // Envío con EmailJS
     emailjs
       .send(
-        "service_q97rjpq", // Reemplaza con tu Service ID
-        "template_l9cvzpn", // Reemplaza con tu Template ID
+        "service_n9n3i3n", // Reemplaza con tu Service ID
+        "template_r07tjwh", // Reemplaza con tu Template ID
         {
           from_name: name,
           reply_to: email,
           message: message,
         },
-        "onJd4b7yydxzDcOZ4" // Reemplaza con tu Public Key
+        "hVwoxHrA3Y8o5A9Gg" // Reemplaza con tu Public Key
       )
       .then(() => {
         setSuccess(true);
@@ -204,30 +214,30 @@ export default function Contacto() {
         </motion.div>
       </motion.section>
       <a
-        href={`https://wa.me/${phoneNumber}?text=${message}`}
-        target="_blank"
-        rel="noopener noreferrer"
-        style={{
-          position: "fixed",
-          bottom: "60px",
-          right: "20px",
-          backgroundColor: "#25D366",
-          color: "white",
-          borderRadius: "50%",
-          width: "60px",
-          height: "60px",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          boxShadow: "0 2px 10px rgba(0,0,0,0.3)",
-          zIndex: 1000,
-          textDecoration: "none",
-          fontSize: "30px",
-        }}
-        aria-label="Contactar por WhatsApp"
-      >
-        <FaWhatsapp />
-      </a>
+  href={whatsappURL}
+  target="_blank"
+  rel="noopener noreferrer"
+  style={{
+    position: "fixed",
+    bottom: "60px",
+    right: "20px",
+    backgroundColor: "#25D366",
+    color: "white",
+    borderRadius: "50%",
+    width: "60px",
+    height: "60px",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    boxShadow: "0 2px 10px rgba(0,0,0,0.3)",
+    zIndex: 1000,
+    textDecoration: "none",
+    fontSize: "30px",
+  }}
+  aria-label="Contactar por WhatsApp"
+>
+  <FaWhatsapp />
+</a>
     </>
   );
 }

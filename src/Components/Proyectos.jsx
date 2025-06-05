@@ -16,8 +16,8 @@ const proyectos = [
   },
   {
     title: "Gestion Flota Camiones",
-    description: "App móvil hecha con React Native y Expo.",
-    imgSrc: "/flota.jpg",
+    description: "Aplicacion de gestion con Autenticacion hecha con React + Vite y Firebase como base de datos.",
+    imgSrc: "/gestion-flota.png",
   },
   {
     title: "En Proceso...",
