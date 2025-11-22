@@ -70,7 +70,7 @@ export default function Servicios() {
       y: 0,
       scale: 1,
       transition: {
-        type: "spring",
+        type: "tween",
         stiffness: 100,
         damping: 15
       }
@@ -79,10 +79,7 @@ export default function Servicios() {
 
   return (
     <section id="servicios" className="py-20 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
-      {/* Elementos decorativos de fondo */}
-      <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:60px_60px]" />
-      <div className="absolute top-0 right-0 w-72 h-72 bg-cyan-500/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-      <div className="absolute bottom-0 left-0 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl -translate-x-1/2 translate-y-1/2" />
+    
       
       <div className="relative z-10 max-w-7xl mx-auto">
         {/* Header Section */}
@@ -124,7 +121,7 @@ export default function Servicios() {
               whileHover={{ 
                 y: -10,
                 scale: 1.02,
-                transition: { type: "spring", stiffness: 300, damping: 20 }
+                transition: { type: "tween", stiffness: 300, damping: 20 }
               }}
               whileTap={{ scale: 0.98 }}
               className="group relative bg-gradient-to-br from-gray-900/80 to-gray-800/60 backdrop-blur-xl rounded-3xl p-8 border border-white/10 hover:border-cyan-500/30 transition-all duration-500 cursor-pointer overflow-hidden"

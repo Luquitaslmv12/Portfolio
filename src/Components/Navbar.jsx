@@ -8,7 +8,7 @@ const navItems = [
   { label: "Proyectos", href: "#proyectos" },
   { label: "Estudios", href: "#estudios" },
   { label: "Sobre Mí", href: "#sobre-mi" },
-/*   { label: "Contacto", href: "#contacto" }, */
+  { label: "Contacto", href: "#contacto" }, 
 ];
 
 export default function Navbar({ scrolled, activeSection }) {
@@ -88,7 +88,7 @@ export default function Navbar({ scrolled, activeSection }) {
                   <motion.div
                     className="absolute bottom-0 left-0 w-full h-0.5 bg-cyan-400"
                     layoutId="activeSection"
-                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                    transition={{ type: "tween", stiffness: 300, damping: 30 }}
                   />
                 )}
               </motion.a>
