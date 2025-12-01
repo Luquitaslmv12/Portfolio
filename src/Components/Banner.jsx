@@ -102,7 +102,7 @@ export default function Banner() {
                 backgroundSize: "200% 100%" 
               }}
             >
-              Viollaz2
+              Viollaz
             </motion.span>
           </motion.h1>
 
