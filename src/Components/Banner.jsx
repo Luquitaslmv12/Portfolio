@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { Code2, Sparkles, ArrowDown, Mouse, Download } from "lucide-react";
+import LightPillar from "../Snippets/LightPillar";
 
 export default function Banner() {
   const scrollToProjects = () => {
@@ -46,14 +47,27 @@ export default function Banner() {
       transition={{ duration: 1 }}
       className="relative min-h-screen flex items-center justify-center overflow-hidden"
     >
-      {/* Elementos decorativos de fondo - Responsive */}
-      <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:40px_40px] sm:bg-[size:60px_60px]" />
-      
-      {/* Partículas flotantes - Responsive */}
-      <motion.div
-        animate={floatingAnimation}
-        className="absolute top-1/4 left-1/4 w-2 h-2 sm:w-3 sm:h-3 md:w-4 md:h-4 bg-cyan-400 rounded-full blur-sm opacity-40 sm:opacity-60"
-      />
+     
+
+      <div className="absolute inset-0 w-full h-full">
+  <LightPillar
+    topColor="#0c08f5"
+    bottomColor="#d43eda"
+    intensity={1}
+    rotationSpeed={0.3}
+    glowAmount={0.001}
+    pillarWidth={5}
+    pillarHeight={0.3}
+    noiseIntensity={0}
+    pillarRotation={90}
+    interactive={false}
+    mixBlendMode="normal"
+  />
+</div>
+
+
+     
+  
       <motion.div
         animate={{ ...floatingAnimation, transition: { ...floatingAnimation.transition, delay: 1 } }}
         className="absolute top-1/3 right-1/4 w-1.5 h-1.5 sm:w-2 sm:h-2 md:w-3 md:h-3 bg-blue-400 rounded-full blur-sm opacity-30 sm:opacity-40"
@@ -63,10 +77,7 @@ export default function Banner() {
         className="absolute bottom-1/4 left-1/3 w-1 h-1 sm:w-1.5 sm:h-1.5 md:w-2 md:h-2 bg-purple-400 rounded-full blur-sm opacity-25 sm:opacity-50"
       />
 
-      {/* Gradientes de fondo - Responsive */}
-      <div className="absolute top-0 left-0 w-48 h-48 sm:w-64 sm:h-64 md:w-80 md:h-80 lg:w-96 lg:h-96 bg-cyan-500/10 rounded-full blur-xl sm:blur-2xl md:blur-3xl -translate-x-1/2 -translate-y-1/2" />
-      <div className="absolute bottom-0 right-0 w-48 h-48 sm:w-64 sm:h-64 md:w-80 md:h-80 lg:w-96 lg:h-96 bg-blue-500/10 rounded-full blur-xl sm:blur-2xl md:blur-3xl translate-x-1/3 translate-y-1/3" />
-
+    
       <div className="relative z-10 max-w-6xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 text-center">
         {/* Badge de bienvenida - Responsive */}
         <motion.div
@@ -76,7 +87,7 @@ export default function Banner() {
           className="inline-flex items-center gap-1 sm:gap-2 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-sm mb-6 sm:mb-8"
         >
           <Sparkles className="w-3 h-3 sm:w-4 sm:h-4 text-cyan-400" />
-          <span className="text-xs sm:text-sm text-gray-300">Bienvenido a mi portfolio</span>
+          <span className="text-xs sm:text-sm text-gray-100">Bienvenido a mi portfolio</span>
         </motion.div>
 
         {/* Título principal - Responsive */}
@@ -113,7 +124,7 @@ export default function Banner() {
             transition={{ delay: 0.5, duration: 0.8 }}
             className="flex flex-col items-center px-2"
           >
-            <div className="flex items-center gap-2 sm:gap-3 text-lg sm:text-xl md:text-2xl lg:text-3xl text-gray-300 mb-3 sm:mb-4">
+            <div className="flex items-center gap-2 sm:gap-3 text-lg sm:text-xl md:text-2xl lg:text-3xl text-gray-100 mb-3 sm:mb-4">
               <Code2 className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 lg:w-8 lg:h-8 text-cyan-400" />
               <motion.span
                 custom={0}
@@ -139,9 +150,9 @@ export default function Banner() {
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.8, duration: 0.6 }}
-              className="text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl text-gray-400 max-w-xs xs:max-w-sm sm:max-w-md md:max-w-2xl lg:max-w-3xl mx-auto leading-relaxed px-2"
+              className="text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl text-gray-100 max-w-xs xs:max-w-sm sm:max-w-md md:max-w-2xl lg:max-w-3xl mx-auto leading-relaxed px-2"
             >
-              Creo <span className="text-cyan-400 font-semibold">experiencias digitales</span>{" "}
+              Creo <span className="text-blue-400 font-semibold">experiencias digitales</span>{" "}
               innovadoras con código limpio, diseño moderno y{" "}
               <span className="text-blue-400 font-semibold">tecnologías de vanguardia</span>
             </motion.p>
@@ -157,9 +168,9 @@ export default function Banner() {
         >
           <motion.button
             onClick={scrollToProjects}
-            whileHover={{ scale: 1.03, y: -1 }}
+            whileHover={{ scale: 1.02, y: -1 }}
             whileTap={{ scale: 0.97 }}
-            className="group relative px-4 py-2.5 sm:px-6 sm:py-3 md:px-8 md:py-4 bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-semibold rounded-lg sm:rounded-xl md:rounded-2xl shadow-lg sm:shadow-xl md:shadow-2xl shadow-cyan-500/25 hover:shadow-cyan-500/40 transition-all duration-300 flex items-center gap-2 text-xs sm:text-sm md:text-base w-full xs:w-auto justify-center"
+            className="group relative px-4 py-2.5 sm:px-6 sm:py-3 md:px-8 md:py-4 bg-gradient-to-r from-cyan-500/50 to-blue-600/50 text-white font-semibold rounded-lg sm:rounded-xl md:rounded-2xl shadow-lg sm:shadow-xl md:shadow-2xl shadow-cyan-500/25 hover:shadow-cyan-500/40 transition-all duration-100 flex items-center gap-2 text-xs sm:text-sm md:text-base w-full xs:w-auto justify-center"
           >
             <span>Explorar Proyectos</span>
             <ArrowDown className="w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5 group-hover:translate-y-0.5 transition-transform" />
@@ -167,9 +178,9 @@ export default function Banner() {
 
           <motion.button
             onClick={downloadCV}
-            whileHover={{ scale: 1.03, y: -1 }}
+            whileHover={{ scale: 1.02, y: -1 }}
             whileTap={{ scale: 0.97 }}
-            className="group px-4 py-2.5 sm:px-6 sm:py-3 md:px-8 md:py-4 bg-white/10 backdrop-blur-sm border border-white/20 text-white font-semibold rounded-lg sm:rounded-xl md:rounded-2xl hover:bg-white/15 transition-all duration-300 flex items-center gap-2 text-xs sm:text-sm md:text-base w-full xs:w-auto justify-center"
+            className="group px-4 py-2.5 sm:px-6 sm:py-3 md:px-8 md:py-4 bg-white/10 backdrop-blur-sm border border-white/20 text-white font-semibold rounded-lg sm:rounded-xl md:rounded-2xl hover:bg-white/15 transition-all duration-100 flex items-center gap-2 text-xs sm:text-sm md:text-base w-full xs:w-auto justify-center"
           >
             <Download className="w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5" />
             <span>Descargar CV</span>
@@ -204,6 +215,7 @@ export default function Banner() {
           ))}
         </motion.div>
       </div>
+      
 
       {/* Scroll indicator mejorado - Responsive */}
       <motion.div
@@ -228,6 +240,8 @@ export default function Banner() {
           Scroll para explorar
         </motion.div>
       </motion.div>
+      
     </motion.section>
+    
   );
 }

@@ -28,7 +28,7 @@ export default function Navbar({ scrolled, activeSection }) {
       className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${
         isScrolled 
           ? "bg-black/90 backdrop-blur-xl border-b border-cyan-500/20 shadow-2xl" 
-          : "bg-transparent backdrop-blur-md border-b border-white/10"
+          : "bg-transparent  "
       }`}
       initial={{ y: -100 }}
       animate={{ y: 0 }}

@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { Quote, Sparkles, Target, Heart, Code2, Users, Lightbulb } from "lucide-react";
 
 export default function SobreMi() {
+
   const skills = [
     {
       icon: <Target className="w-5 h-5 sm:w-6 sm:h-6" />,

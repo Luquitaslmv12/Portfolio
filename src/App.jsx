@@ -185,7 +185,7 @@ export default function App() {
       {/* Contenido principal */}
       <div className="relative z-10">
         <Navbar scrolled={scrolled} activeSection={activeSection} />
-        <main className="pt-16">
+        <main className="">
           
           {/* BANNER - con gradiente específico */}
           <div className="relative">
