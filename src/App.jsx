@@ -79,6 +79,7 @@ const StaticParticles = ({ isMobile }) => {
 
 // Componente SEPARADO para el scanner
 const StaticScanner = () => (
+  
   <motion.div
     className="fixed inset-0 pointer-events-none overflow-hidden"
     initial={{ opacity: 0 }}
@@ -90,6 +91,7 @@ const StaticScanner = () => (
       initial={{ y: -100 }}
       animate={{ y: '100vh' }}
       transition={{
+        
         duration: 15,
         repeat: Infinity,
         ease: "linear",

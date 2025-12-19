@@ -13,7 +13,8 @@ const LightPillar = ({
   pillarHeight = 0.4,
   noiseIntensity = 0.5,
   mixBlendMode = 'screen',
-  pillarRotation = 0
+  pillarRotation = 0,
+  pauseWhenNotVisible = true // NUEVA PROPIEDAD
 }) => {
   const containerRef = useRef(null);
   const rafRef = useRef(null);
@@ -25,6 +26,12 @@ const LightPillar = ({
   const mouseRef = useRef(new THREE.Vector2(0, 0));
   const timeRef = useRef(0);
   const [webGLSupported, setWebGLSupported] = useState(true);
+  
+  // NUEVAS REFERENCIAS para control de visibilidad
+  const isVisibleRef = useRef(true);
+  const observerRef = useRef(null);
+  const lastTimeRef = useRef(0);
+  const shouldAnimateRef = useRef(true);
 
   // Check WebGL support
   useEffect(() => {
@@ -35,6 +42,80 @@ const LightPillar = ({
       console.warn('WebGL is not supported in this browser');
     }
   }, []);
+
+  // NUEVO: Intersection Observer para pausar cuando no es visible
+  useEffect(() => {
+    if (!pauseWhenNotVisible || !containerRef.current || !('IntersectionObserver' in window)) {
+      return;
+    }
+
+    observerRef.current = new IntersectionObserver(
+      (entries) => {
+        entries.forEach(entry => {
+          isVisibleRef.current = entry.isIntersecting;
+          shouldAnimateRef.current = entry.isIntersecting;
+          
+          if (!entry.isIntersecting && rafRef.current) {
+            // Pausar la animación
+            cancelAnimationFrame(rafRef.current);
+            rafRef.current = null;
+            console.log('LightPillar pausado (no visible)');
+          }
+          
+          if (entry.isIntersecting && !rafRef.current && rendererRef.current) {
+            // Reanudar la animación
+            lastTimeRef.current = performance.now();
+            startAnimation();
+            console.log('LightPillar reanudado (visible)');
+          }
+        });
+      },
+      {
+        threshold: 0.01, // 1% visible
+        rootMargin: '200px' // Margen generoso para activar antes
+      }
+    );
+
+    observerRef.current.observe(containerRef.current);
+
+    return () => {
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+        observerRef.current = null;
+      }
+    };
+  }, [pauseWhenNotVisible]);
+
+  // NUEVO: Función para iniciar animación
+  const startAnimation = () => {
+    if (rafRef.current || !rendererRef.current || !shouldAnimateRef.current) return;
+
+    const animate = (currentTime) => {
+      if (!materialRef.current || !rendererRef.current || !sceneRef.current || !cameraRef.current) {
+        return;
+      }
+
+      const deltaTime = currentTime - lastTimeRef.current;
+      const targetFPS = 60;
+      const frameTime = 1000 / targetFPS;
+
+      if (deltaTime >= frameTime && shouldAnimateRef.current) {
+        timeRef.current += 0.016 * rotationSpeed;
+        materialRef.current.uniforms.uTime.value = timeRef.current;
+        rendererRef.current.render(sceneRef.current, cameraRef.current);
+        lastTimeRef.current = currentTime - (deltaTime % frameTime);
+      }
+
+      // Solo continuar si debería animarse
+      if (shouldAnimateRef.current) {
+        rafRef.current = requestAnimationFrame(animate);
+      } else {
+        rafRef.current = null;
+      }
+    };
+
+    rafRef.current = requestAnimationFrame(animate);
+  };
 
   useEffect(() => {
     if (!containerRef.current || !webGLSupported) return;
@@ -76,7 +157,7 @@ const LightPillar = ({
       return new THREE.Vector3(color.r, color.g, color.b);
     };
 
-    // Shader material
+    // Shader material (EXACTAMENTE EL MISMO)
     const vertexShader = `
       varying vec2 vUv;
       void main() {
@@ -253,26 +334,26 @@ const LightPillar = ({
       container.addEventListener('mousemove', handleMouseMove, { passive: true });
     }
 
-    // Animation loop with fixed timestep
-    let lastTime = performance.now();
-    const targetFPS = 60;
-    const frameTime = 1000 / targetFPS;
-
-    const animate = currentTime => {
-      if (!materialRef.current || !rendererRef.current || !sceneRef.current || !cameraRef.current) return;
-
-      const deltaTime = currentTime - lastTime;
-
-      if (deltaTime >= frameTime) {
-        timeRef.current += 0.016 * rotationSpeed;
-        materialRef.current.uniforms.uTime.value = timeRef.current;
-        rendererRef.current.render(sceneRef.current, cameraRef.current);
-        lastTime = currentTime - (deltaTime % frameTime);
+    // NUEVO: Pausar cuando el tab no está visible
+    const handleVisibilityChange = () => {
+      if (document.hidden && rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
+        rafRef.current = null;
+        shouldAnimateRef.current = false;
+      } else if (!document.hidden && isVisibleRef.current && !rafRef.current && rendererRef.current) {
+        shouldAnimateRef.current = true;
+        lastTimeRef.current = performance.now();
+        startAnimation();
       }
-
-      rafRef.current = requestAnimationFrame(animate);
     };
-    rafRef.current = requestAnimationFrame(animate);
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    // Iniciar animación solo si está visible
+    if (isVisibleRef.current) {
+      lastTimeRef.current = performance.now();
+      startAnimation();
+    }
 
     // Handle resize with debouncing
     let resizeTimeout = null;
@@ -295,12 +376,22 @@ const LightPillar = ({
     // Cleanup
     return () => {
       window.removeEventListener('resize', handleResize);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      
       if (interactive) {
         container.removeEventListener('mousemove', handleMouseMove);
       }
+      
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+        observerRef.current = null;
+      }
+      
       if (rafRef.current) {
         cancelAnimationFrame(rafRef.current);
+        rafRef.current = null;
       }
+      
       if (rendererRef.current) {
         rendererRef.current.dispose();
         rendererRef.current.forceContextLoss();
@@ -308,9 +399,11 @@ const LightPillar = ({
           container.removeChild(rendererRef.current.domElement);
         }
       }
+      
       if (materialRef.current) {
         materialRef.current.dispose();
       }
+      
       if (geometryRef.current) {
         geometryRef.current.dispose();
       }
@@ -321,6 +414,8 @@ const LightPillar = ({
       cameraRef.current = null;
       geometryRef.current = null;
       rafRef.current = null;
+      isVisibleRef.current = true;
+      shouldAnimateRef.current = true;
     };
   }, [
     topColor,
@@ -333,7 +428,8 @@ const LightPillar = ({
     pillarHeight,
     noiseIntensity,
     pillarRotation,
-    webGLSupported
+    webGLSupported,
+    pauseWhenNotVisible // Agregar a dependencias
   ]);
 
   if (!webGLSupported) {

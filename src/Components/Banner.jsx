@@ -60,8 +60,11 @@ export default function Banner() {
     pillarHeight={0.3}
     noiseIntensity={0}
     pillarRotation={90}
-    interactive={false}
     mixBlendMode="normal"
+      pauseWhenNotVisible={true}  // Esto pausará la animación cuando no esté en viewport
+  fpsLimit={30}               // Limitar FPS para mejor performance
+  mobileOptimized={true}      // Optimizar para móviles
+    
   />
 </div>
 
