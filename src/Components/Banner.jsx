@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { Code2, Sparkles, ArrowDown, Mouse, Download } from "lucide-react";
 import LightPillar from "../Snippets/LightPillar";
 
-export default function Banner() {
+export default function Banner(isMobile) {
   const scrollToProjects = () => {
     document.getElementById("proyectos")?.scrollIntoView({ behavior: "smooth" });
   };
@@ -53,13 +53,14 @@ export default function Banner() {
   <LightPillar
     topColor="#0c08f5"
     bottomColor="#d43eda"
-    intensity={1}
-    rotationSpeed={0.3}
+    intensity={isMobile ? 0.8 : 1.0} // Menos intensidad en móvil
     glowAmount={0.001}
     pillarWidth={5}
     pillarHeight={0.3}
-    noiseIntensity={0}
     pillarRotation={90}
+    staticMode={isMobile ? true : false}
+  rotationSpeed={isMobile ? 0.15 : 0.3} // Más lento en móvil
+  noiseIntensity={isMobile ? 0 : 0.5} // Menos ruido en móvil
     mixBlendMode="normal"
       pauseWhenNotVisible={true}  // Esto pausará la animación cuando no esté en viewport
   fpsLimit={30}               // Limitar FPS para mejor performance
