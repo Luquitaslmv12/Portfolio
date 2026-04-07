@@ -15,8 +15,7 @@ const LightPillar = ({
   noiseIntensity = 0.5,
   mixBlendMode = 'screen',
   pillarRotation = 0,
-  pauseWhenNotVisible = true,
-  mobileOptimized = true // NUEVA PROPIEDAD para móviles
+  pauseWhenNotVisible = true
 }) => {
   const containerRef = useRef(null);
   const rafRef = useRef(null);
@@ -34,9 +33,8 @@ const LightPillar = ({
   const observerRef = useRef(null);
   const lastTimeRef = useRef(0);
   const shouldAnimateRef = useRef(true);
-  const animationIdRef = useRef(0);
 
-  // Detectar si es móvil
+  // Detectar móvil y NO renderizar nada
   useEffect(() => {
     const checkMobile = () => {
       return window.innerWidth <= 768 || 
@@ -51,6 +49,11 @@ const LightPillar = ({
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  // NO renderizar si es móvil
+  if (isMobile) {
+    return null;
+  }
 
   // Check WebGL support
   useEffect(() => {
@@ -81,11 +84,7 @@ const LightPillar = ({
           
           if (entry.isIntersecting && !rafRef.current && rendererRef.current) {
             lastTimeRef.current = performance.now();
-            if (staticMode && isMobile) {
-  rendererRef.current.render(sceneRef.current, cameraRef.current);
-  return;
-}
-startAnimation();
+            startAnimation();
           }
         });
       },
@@ -105,38 +104,21 @@ startAnimation();
     };
   }, [pauseWhenNotVisible]);
 
-  // Función para iniciar animación con FPS adaptativo
+  // Función para iniciar animación
   const startAnimation = () => {
     if (rafRef.current || !rendererRef.current || !shouldAnimateRef.current) return;
-
-    const targetFPS = isMobile ? 40 : 60; // FPS más bajo en móviles
-    const frameTime = 1000 / targetFPS;
-    let frameCount = 0;
 
     const animate = (currentTime) => {
       if (!materialRef.current || !rendererRef.current || !sceneRef.current || !cameraRef.current) {
         return;
       }
+
       if (!staticMode) {
-  timeRef.current += (frameTime / 1000) * rotationSpeed;
-  materialRef.current.uniforms.uTime.value = timeRef.current;
-}
-
-      const deltaTime = currentTime - lastTimeRef.current;
-
-      if (deltaTime >= frameTime) {
-        if (shouldAnimateRef.current) {
-          timeRef.current += (frameTime / 1000) * rotationSpeed;
-          materialRef.current.uniforms.uTime.value = timeRef.current;
-          
-          // En móviles, renderizar cada 2 frames para más performance
-          if (!isMobile || frameCount % 2 === 0) {
-            rendererRef.current.render(sceneRef.current, cameraRef.current);
-          }
-          frameCount++;
-        }
-        lastTimeRef.current = currentTime - (deltaTime % frameTime);
+        timeRef.current += 0.016 * rotationSpeed; // ~60fps
+        materialRef.current.uniforms.uTime.value = timeRef.current;
       }
+
+      rendererRef.current.render(sceneRef.current, cameraRef.current);
 
       if (shouldAnimateRef.current) {
         rafRef.current = requestAnimationFrame(animate);
@@ -149,7 +131,7 @@ startAnimation();
   };
 
   useEffect(() => {
-    if (!containerRef.current || !webGLSupported) return;
+    if (!containerRef.current || !webGLSupported || isMobile) return; // ← Asegurar que no se renderiza en móvil
 
     const container = containerRef.current;
     const width = container.clientWidth;
@@ -163,17 +145,10 @@ startAnimation();
 
     let renderer;
     try {
-      const isLowEndDevice = isMobile || 
-        (/Android|iPhone|iPad/i.test(navigator.userAgent) && 
-         /CPU|Intel|AMD/.test(navigator.userAgent));
-
       renderer = new THREE.WebGLRenderer({
-        antialias: false,
+        antialias: true,
         alpha: true,
-        powerPreference: isLowEndDevice ? 'low-power' : 'high-performance',
-        precision: 'mediump', // Medium precision para móviles
-        stencil: false,
-        depth: false
+        powerPreference: 'high-performance'
       });
     } catch (error) {
       console.error('Failed to create WebGL renderer:', error);
@@ -181,12 +156,7 @@ startAnimation();
       return;
     }
 
-    // Pixel ratio reducido en móviles
-    const pixelRatio = isMobile ? 
-      Math.min(window.devicePixelRatio, 1) : 
-      Math.min(window.devicePixelRatio, 1.5);
-    
-    renderer.setPixelRatio(pixelRatio);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setSize(width, height);
     container.appendChild(renderer.domElement);
     rendererRef.current = renderer;
@@ -197,7 +167,7 @@ startAnimation();
       return new THREE.Vector3(color.r, color.g, color.b);
     };
 
-    // Shader ADAPTATIVO para móviles
+    // Shader completo (versión desktop de alta calidad)
     const vertexShader = `
       varying vec2 vUv;
       void main() {
@@ -219,7 +189,6 @@ startAnimation();
       uniform float uPillarHeight;
       uniform float uNoiseIntensity;
       uniform float uPillarRotation;
-      uniform bool uIsMobile;
       varying vec2 vUv;
 
       const float PI = 3.141592653589793;
@@ -232,37 +201,20 @@ startAnimation();
         return mat2(c, -s, s, c);
       }
 
-      // Noise optimizado para móviles
       float noise(vec2 coord) {
         return fract(sin(dot(coord, vec2(12.9898, 78.233))) * 43758.5453);
       }
 
-      // Deformación simplificada para móviles
       vec3 applyWaveDeformation(vec3 pos, float timeOffset) {
-        if (uIsMobile) {
-          // Versión móvil: solo 2 iteraciones
-          float frequency = 1.2;
-          float amplitude = 0.8;
-          
-          for(float i = 0.0; i < 2.0; i++) {
-            pos.xz *= rot(0.3);
-            vec3 oscillation = cos(pos.zxy * frequency - timeOffset * (i + 1.0) * 0.3);
-            pos += oscillation * amplitude;
-            frequency *= 1.5;
-            amplitude *= 0.5;
-          }
-        } else {
-          // Versión desktop: 4 iteraciones
-          float frequency = 1.0;
-          float amplitude = 1.0;
-          
-          for(float i = 0.0; i < 4.0; i++) {
-            pos.xz *= rot(0.4);
-            vec3 oscillation = cos(pos.zxy * frequency - timeOffset * i * 2.0);
-            pos += oscillation * amplitude;
-            frequency *= 2.0;
-            amplitude *= 0.5;
-          }
+        float frequency = 1.0;
+        float amplitude = 1.0;
+        
+        for(float i = 0.0; i < 4.0; i++) {
+          pos.xz *= rot(0.4);
+          vec3 oscillation = cos(pos.zxy * frequency - timeOffset * i * 2.0);
+          pos += oscillation * amplitude;
+          frequency *= 2.0;
+          amplitude *= 0.5;
         }
         return pos;
       }
@@ -279,63 +231,47 @@ startAnimation();
         float rotAngle = uPillarRotation * PI / 180.0;
         uv *= rot(rotAngle);
 
-        vec3 origin = vec3(0.0, 0.0, uIsMobile ? -6.0 : -10.0);
+        vec3 origin = vec3(0.0, 0.0, -10.0);
         vec3 direction = normalize(vec3(uv, 1.0));
 
-        float maxDepth = uIsMobile ? 35.0 : 50.0;
+        float maxDepth = 50.0;
         float depth = 0.1;
 
-        mat2 rotX = rot(uTime * (uIsMobile ? 0.2 : 0.3));
+        mat2 rotX = rot(uTime * 0.3);
         if(uInteractive && length(uMouse) > 0.0) {
           rotX = rot(uMouse.x * PI * 2.0);
         }
 
         vec3 color = vec3(0.0);
         
-        // ITERACIONES REDUCIDAS EN MÓVILES
-        float maxIterations = uIsMobile ? 50.0 : 100.0;
-        
-        for(float i = 0.0; i < maxIterations; i++) {
+        for(float i = 0.0; i < 100.0; i++) {
           vec3 pos = origin + direction * depth;
           pos.xz *= rotX;
 
-          // Aplicar escalado vertical
           vec3 deformed = pos;
           deformed.y *= uPillarHeight;
           
-          // Aplicar deformación
           deformed = applyWaveDeformation(deformed + vec3(0.0, uTime * 0.5, 0.0), uTime);
           
-          // Campo de distancia optimizado
-          vec2 cosinePair = cos(deformed.xz * (uIsMobile ? 0.8 : 1.0));
+          vec2 cosinePair = cos(deformed.xz);
           float fieldDistance = length(cosinePair) - 0.2;
           
-          // Restricción radial
           float radialBound = length(pos.xz) - uPillarWidth;
           fieldDistance = blendMax(radialBound, fieldDistance, 1.0);
           fieldDistance = abs(fieldDistance) * 0.15 + 0.01;
 
-          // Gradiente
           vec3 gradient = mix(uBottomColor, uTopColor, smoothstep(12.0, -12.0, pos.y));
-          
-          // Cálculo más simple en móviles
-          if (uIsMobile) {
-            color += gradient * (0.7 / fieldDistance);
-          } else {
-            color += gradient * pow(1.0 / fieldDistance, 1.0);
-          }
+          color += gradient * pow(1.0 / fieldDistance, 1.0);
 
           if(fieldDistance < EPSILON || depth > maxDepth) break;
-          depth += fieldDistance * (uIsMobile ? 1.2 : 1.0);
+          depth += fieldDistance;
         }
 
-        // Normalización
         float widthNormalization = uPillarWidth / 3.0;
         color = tanh(color * uGlowAmount / widthNormalization);
         
-        // Ruido reducido en móviles
-        float rnd = noise(gl_FragCoord.xy * (uIsMobile ? 0.3 : 1.0));
-        color -= rnd * (uIsMobile ? 0.02 : 0.066) * uNoiseIntensity;
+        float rnd = noise(gl_FragCoord.xy);
+        color -= rnd * 0.066 * uNoiseIntensity;
         
         gl_FragColor = vec4(color * uIntensity, 1.0);
       }
@@ -356,13 +292,11 @@ startAnimation();
         uPillarWidth: { value: pillarWidth },
         uPillarHeight: { value: pillarHeight },
         uNoiseIntensity: { value: noiseIntensity },
-        uPillarRotation: { value: pillarRotation },
-        uIsMobile: { value: isMobile && mobileOptimized }
+        uPillarRotation: { value: pillarRotation }
       },
       transparent: true,
       depthWrite: false,
-      depthTest: false,
-      precision: isMobile ? 'mediump' : 'lowp'
+      depthTest: false
     });
     materialRef.current = material;
 
@@ -372,23 +306,16 @@ startAnimation();
     scene.add(mesh);
 
     // Mouse interaction
-    let mouseMoveTimeout = null;
     const handleMouseMove = event => {
       if (!interactive) return;
-
-      if (mouseMoveTimeout) return;
-
-      mouseMoveTimeout = setTimeout(() => {
-        const rect = container.getBoundingClientRect();
-        const x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-        const y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-        mouseRef.current.set(x, y);
-        mouseMoveTimeout = null;
-      }, isMobile ? 32 : 16); // Más throttle en móvil
+      const rect = container.getBoundingClientRect();
+      const x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+      const y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+      mouseRef.current.set(x, y);
     };
 
     if (interactive) {
-      container.addEventListener('mousemove', handleMouseMove, { passive: true });
+      container.addEventListener('mousemove', handleMouseMove);
     }
 
     // Pausar cuando el tab no está visible
@@ -412,23 +339,16 @@ startAnimation();
       startAnimation();
     }
 
-    // Handle resize optimizado
-    let resizeTimeout = null;
+    // Handle resize
     const handleResize = () => {
-      if (resizeTimeout) {
-        clearTimeout(resizeTimeout);
-      }
-
-      resizeTimeout = setTimeout(() => {
-        if (!rendererRef.current || !materialRef.current || !containerRef.current) return;
-        const newWidth = containerRef.current.clientWidth;
-        const newHeight = containerRef.current.clientHeight;
-        rendererRef.current.setSize(newWidth, newHeight);
-        materialRef.current.uniforms.uResolution.value.set(newWidth, newHeight);
-      }, isMobile ? 300 : 150); // Más debounce en móvil
+      if (!rendererRef.current || !materialRef.current || !containerRef.current) return;
+      const newWidth = containerRef.current.clientWidth;
+      const newHeight = containerRef.current.clientHeight;
+      rendererRef.current.setSize(newWidth, newHeight);
+      materialRef.current.uniforms.uResolution.value.set(newWidth, newHeight);
     };
 
-    window.addEventListener('resize', handleResize, { passive: true });
+    window.addEventListener('resize', handleResize);
 
     // Cleanup
     return () => {
@@ -489,8 +409,7 @@ startAnimation();
     pillarRotation,
     webGLSupported,
     pauseWhenNotVisible,
-    isMobile,
-    mobileOptimized
+    isMobile
   ]);
 
   if (!webGLSupported) {
@@ -508,13 +427,7 @@ startAnimation();
     <div 
       ref={containerRef} 
       className={`w-full h-full absolute top-0 left-0 ${className}`}
-      style={{ 
-        mixBlendMode,
-        ...(isMobile && {
-          transform: 'translateZ(0)',
-          backfaceVisibility: 'hidden'
-        })
-      }}
+      style={{ mixBlendMode }}
     />
   );
 };

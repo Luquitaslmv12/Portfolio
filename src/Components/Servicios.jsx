@@ -66,237 +66,91 @@ const servicios = [
 ];
 
 // Componente wrapper para usar TiltedCard con servicios
-const ServiceCardWithTilt = ({ servicio, index }) => {
-  // Contenido overlay personalizado para el TiltedCard
-  const overlayContent = (
-    <div className={`relative ${servicio.cardColor} backdrop-blur-xl rounded-3xl p-8 border border-white/10 overflow-hidden w-full h-full`}>
-      {/* Borde animado */}
-      <div className={`absolute inset-0 rounded-3xl bg-gradient-to-r ${servicio.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500`}>
-        <div className="absolute inset-[1px] rounded-3xl bg-gray-900" />
-      </div>
-
-      <div className="relative z-10 h-full flex flex-col">
-        {/* Icon */}
-        <motion.div
-          whileHover={{ scale: 1.1, rotate: 5 }}
-          className={`w-16 h-16 rounded-2xl bg-gradient-to-r ${servicio.gradient} flex items-center justify-center text-white mb-6 shadow-lg`}
-        >
-          {servicio.icon}
-        </motion.div>
-
-        {/* Title */}
-        <h3 className="text-xl font-bold text-white mb-4">
-          {servicio.title}
-        </h3>
-
-        {/* Description */}
-        <p className="text-gray-400 mb-6 leading-relaxed flex-grow">
-          {servicio.description}
-        </p>
-
-        {/* Features List */}
-        <ul className="space-y-2 mb-6">
-          {servicio.features.map((feature, featureIndex) => (
-            <motion.li
-              key={featureIndex}
-              initial={{ opacity: 0, x: -10 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              transition={{ delay: servicio.delay + featureIndex * 0.1 }}
-              className="flex items-center gap-2 text-sm text-gray-300"
-            >
-              <div className={`w-1.5 h-1.5 rounded-full bg-gradient-to-r ${servicio.gradient}`} />
-              {feature}
-            </motion.li>
-          ))}
-        </ul>
-
-        {/* CTA Arrow */}
-       {/*  <motion.div
-          initial={{ opacity: 0, x: -10 }}
-          whileInView={{ opacity: 1, x: 0 }}
-          transition={{ delay: servicio.delay + 0.3 }}
-          className="flex items-center gap-2 text-cyan-400 group-hover:text-cyan-300 transition-colors mt-auto"
-        >
-          <span className="text-sm font-medium">Saber más</span>
-          <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-        </motion.div> */}
-      </div>
-    </div>
-  );
-
+const ServiceCard = ({ servicio, isMobile }) => {
   return (
-    <div className="w-full h-full min-h-[500px]">
-      <TiltedCard
-/*         imageSrc={servicio.bgImage || "/images/default-service-bg.jpg"} // Imagen de fondo para el efecto 3D
-        altText={`Fondo para ${servicio.title}`} */
-        captionText={servicio.title} // Tooltip mostrará el título del servicio
-        containerHeight="100%"
-        containerWidth="100%"
-        imageHeight="500px" // Ajusta según necesites
-        imageWidth="100%"
-        scaleOnHover={1.03} // Efecto más sutil
-        rotateAmplitude={6} // Rotación más suave
-        showMobileWarning={false} // Desactiva el warning
-        showTooltip={false}
-        overlayContent={overlayContent}
-        displayOverlayContent={true}
-      />
-    </div>
-  );
-};
-
-// Versión alternativa sin efecto 3D para mobile (opcional)
-const ServiceCardSimple = ({ servicio, index }) => (
-  <motion.div
-    initial={{ opacity: 0, y: 30 }}
-    whileInView={{ opacity: 1, y: 0 }}
-    transition={{ duration: 0.6, delay: index * 0.1 }}
-    whileHover={{ 
-      y: -10,
-      scale: 1.02,
-      transition: { type: "tween", stiffness: 300, damping: 20 }
-    }}
-    className={`group relative ${servicio.cardColor} backdrop-blur-xl rounded-3xl p-8 border border-white/10 hover:border-cyan-500/30 transition-all duration-500 cursor-pointer overflow-hidden h-full min-h-[500px] flex flex-col`}
-  >
-    {/* Borde animado */}
-    <div className={`absolute inset-0 rounded-3xl bg-gradient-to-r ${servicio.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500`}>
-      <div className="absolute inset-[1px] rounded-3xl bg-gray-900" />
-    </div>
-
-    <div className="relative z-10 flex flex-col h-full">
-      {/* Icon */}
-      <motion.div
-        whileHover={{ scale: 1.1, rotate: 5 }}
-        className={`w-16 h-16 rounded-2xl bg-gradient-to-r ${servicio.gradient} flex items-center justify-center text-white mb-6 shadow-lg`}
-      >
+    <motion.div
+      initial={isMobile ? false : { opacity: 0, y: 20 }}
+      whileInView={isMobile ? {} : { opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.4 }}
+      className={`group ${servicio.cardColor} rounded-2xl p-6 border border-white/10 hover:border-cyan-400/30 transition-all duration-200 flex flex-col`}
+    >
+      {/* ICON */}
+      <div className={`w-14 h-14 rounded-xl bg-gradient-to-r ${servicio.gradient} flex items-center justify-center text-white mb-4`}>
         {servicio.icon}
-      </motion.div>
+      </div>
 
-      {/* Title */}
-      <h3 className="text-xl font-bold text-white mb-4">
+      {/* TITLE */}
+      <h3 className="text-lg font-bold text-white mb-2">
         {servicio.title}
       </h3>
 
-      {/* Description */}
-      <p className="text-gray-400 mb-6 leading-relaxed flex-grow">
+      {/* DESC */}
+      <p className="text-gray-400 text-sm mb-4 flex-1">
         {servicio.description}
       </p>
 
-      {/* Features List */}
-      <ul className="space-y-2 mb-6">
-        {servicio.features.map((feature, featureIndex) => (
-          <motion.li
-            key={featureIndex}
-            initial={{ opacity: 0, x: -10 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            transition={{ delay: servicio.delay + featureIndex * 0.1 }}
-            className="flex items-center gap-2 text-sm text-gray-300"
-          >
+      {/* FEATURES (SIN motion) */}
+      <ul className="space-y-1 mb-4">
+        {servicio.features.map((f) => (
+          <li key={f} className="text-xs text-gray-300 flex items-center gap-2">
             <div className={`w-1.5 h-1.5 rounded-full bg-gradient-to-r ${servicio.gradient}`} />
-            {feature}
-          </motion.li>
+            {f}
+          </li>
         ))}
       </ul>
 
-      {/* CTA Arrow */}
-     {/*  <motion.div
-        initial={{ opacity: 0, x: -10 }}
-        whileInView={{ opacity: 1, x: 0 }}
-        transition={{ delay: servicio.delay + 0.3 }}
-        className="flex items-center gap-2 text-cyan-400 group-hover:text-cyan-300 transition-colors mt-auto"
-      >
-        <span className="text-sm font-medium">Saber más</span>
-        <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-      </motion.div> */}
-    </div>
-  </motion.div>
-);
+      {/* CTA */}
+      <div className="text-cyan-400 text-sm flex items-center gap-2 mt-auto">
+        <span>Más info</span>
+        <ArrowRight size={14} />
+      </div>
+    </motion.div>
+  );
+};
 
-export default function Servicios() {
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.2
-      }
-    }
-  };
-
+export default function Servicios({ isMobile }) {
   return (
-    <section id="servicios" className="py-20 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
-      <div className="relative z-10 max-w-7xl mx-auto">
-        {/* Header Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          viewport={{ once: true }}
-          className="text-center mb-16"
-        >
-          <motion.span
-            initial={{ opacity: 0, scale: 0.5 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.6 }}
-            className="inline-block px-4 py-2 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-sm font-medium mb-4"
-          >
-            Lo que ofrezco
-          </motion.span>
-          <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6">
-            Mis <span className="bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">Servicios</span>
+    <section id="servicios" className="py-16 px-4">
+      <div className="max-w-6xl mx-auto">
+
+        {/* HEADER SIMPLE */}
+        <div className="text-center mb-10">
+          <h2 className="text-3xl font-bold text-white">
+            Mis <span className="text-cyan-400">Servicios</span>
           </h2>
-          <p className="text-xl text-gray-400 max-w-2xl mx-auto">
-            Soluciones tecnológicas completas para llevar tus ideas al siguiente nivel
+          <p className="text-gray-400 mt-2">
+            Soluciones tecnológicas para tu negocio
           </p>
-        </motion.div>
+        </div>
 
-        {/* Services Grid */}
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-50px" }}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
-        >
-          {servicios.map((servicio, index) => (
-            <div key={index} className="h-full">
-              {/* Usa TiltedCard solo en desktop, versión simple en mobile */}
-              <div className="hidden md:block h-full">
-                <ServiceCardWithTilt servicio={servicio} index={index} />
-              </div>
-              <div className="md:hidden h-full">
-                <ServiceCardSimple servicio={servicio} index={index} />
-              </div>
-            </div>
+        {/* GRID */}
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {servicios.map((s) => (
+            <ServiceCard key={s.title} servicio={s} isMobile={isMobile} />
           ))}
-        </motion.div>
+        </div>
 
-        {/* CTA Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.8 }}
-          viewport={{ once: true }}
-          className="text-center mt-16"
-        >
-          <div className="bg-gradient-to-r from-cyan-500/10 to-blue-500/10 backdrop-blur-sm rounded-2xl p-8 border border-cyan-500/20">
-            <h3 className="text-2xl font-bold text-white mb-4">
-              ¿No encuentras lo que buscas?
+        {/* CTA */}
+        <div className="text-center mt-10">
+          <div className="bg-cyan-500/5 rounded-xl p-6 border border-cyan-500/20">
+            <h3 className="text-lg font-bold text-white mb-2">
+              ¿Proyecto en mente?
             </h3>
-            <p className="text-gray-400 mb-6 max-w-2xl mx-auto">
-              Cada proyecto es único. Hablemos sobre tus necesidades específicas y creemos una solución personalizada juntos.
+            <p className="text-gray-400 text-sm mb-4">
+              Hablemos y lo hacemos realidad
             </p>
-            <motion.a
+
+            <a
               href="#contacto"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-semibold rounded-2xl hover:shadow-2xl hover:shadow-cyan-500/25 transition-all duration-300"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-cyan-600 text-white rounded-xl hover:bg-cyan-500 transition"
             >
-              <span>Consultar Proyecto Personalizado</span>
-              <ArrowRight className="w-5 h-5" />
-            </motion.a>
+              Contactar
+              <ArrowRight size={16} />
+            </a>
           </div>
-        </motion.div>
+        </div>
+
       </div>
     </section>
   );

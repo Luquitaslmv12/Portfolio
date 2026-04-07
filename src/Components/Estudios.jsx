@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Award, Calendar, ExternalLink, ChevronDown, BookOpen, GraduationCap } from "lucide-react";
+import { Award, Calendar, ExternalLink, ChevronDown, X, ZoomIn } from "lucide-react";
 
 const estudios = [
   {
@@ -55,246 +55,265 @@ const estudios = [
   },
 ];
 
-export default function Estudios() {
+export default function Estudios({ isMobile }) {
   const [expanded, setExpanded] = useState(null);
   const [modalImg, setModalImg] = useState(null);
+  const [isZooming, setIsZooming] = useState(false);
 
-  const toggleExpand = (index) => {
-    setExpanded(expanded === index ? null : index);
+  // Variantes de animación para el modal
+  const backdropVariants = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1, transition: { duration: 0.2 } }
   };
 
-  const getTypeIcon = (type) => {
-    switch (type) {
-      case "universidad":
-        return <GraduationCap className="w-5 h-5" />;
-      case "curso":
-        return <BookOpen className="w-5 h-5" />;
-      case "certificación":
-        return <Award className="w-5 h-5" />;
-      case "evento":
-        return <Calendar className="w-5 h-5" />;
-      default:
-        return <BookOpen className="w-5 h-5" />;
+  const modalVariants = {
+    hidden: { 
+      scale: 0.8,
+      opacity: 0,
+      y: 50
+    },
+    visible: { 
+      scale: 1,
+      opacity: 1,
+      y: 0,
+      transition: {
+        type: "spring",
+        damping: 25,
+        stiffness: 300,
+        duration: 0.3
+      }
+    },
+    exit: { 
+      scale: 0.8,
+      opacity: 0,
+      y: 50,
+      transition: { duration: 0.2 }
     }
   };
 
-  const getTypeColor = (type) => {
-    switch (type) {
-      case "universidad":
-        return "border-blue-400 text-blue-400";
-      case "curso":
-        return "border-green-400 text-green-400";
-      case "certificación":
-        return "border-purple-400 text-purple-400";
-      case "evento":
-        return "border-orange-400 text-orange-400";
-      default:
-        return "border-gray-400 text-gray-400";
+  // Variantes para el zoom de la imagen dentro del modal
+  const imageVariants = {
+    hidden: { scale: 0.9, opacity: 0 },
+    visible: { 
+      scale: 1, 
+      opacity: 1,
+      transition: {
+        delay: 0.1,
+        type: "spring",
+        damping: 20,
+        stiffness: 400
+      }
     }
   };
 
-  const getGradientColor = (type) => {
-    switch (type) {
-      case "universidad":
-        return "group-hover:shadow-blue-500/20";
-      case "curso":
-        return "group-hover:shadow-green-500/20";
-      case "certificación":
-        return "group-hover:shadow-purple-500/20";
-      case "evento":
-        return "group-hover:shadow-orange-500/20";
-      default:
-        return "group-hover:shadow-cyan-500/20";
-    }
+  // Efecto hover para el botón de zoom en la tarjeta
+  const buttonVariants = {
+    rest: { scale: 1, backgroundColor: "rgba(0,0,0,0.6)" },
+    hover: { 
+      scale: 1.1, 
+      backgroundColor: "rgba(0,150,255,0.8)",
+      transition: { duration: 0.2 }
+    },
+    tap: { scale: 0.95 }
   };
 
   return (
-    <section id="estudios" className="py-20 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
-    
-      
-      <div className="relative z-10 max-w-7xl mx-auto">
-        {/* Header Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          viewport={{ once: true }}
-          className="text-center mb-16"
-        >
-          <motion.span
-            initial={{ opacity: 0, scale: 0.8 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.6 }}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-sm font-medium mb-4"
-          >
-            <Award className="w-4 h-4" />
-            Mi Formación
-          </motion.span>
-          <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6">
-            Estudios & <span className="bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">Certificaciones</span>
-          </h2>
-          <p className="text-xl text-gray-400 max-w-2xl mx-auto">
-            Mi trayectoria educativa y compromiso con el aprendizaje continuo
-          </p>
-        </motion.div>
+    <section id="estudios" className="py-16 px-4">
+      <div className="max-w-6xl mx-auto">
 
-        {/* Estudios Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {estudios.map((estudio, index) => (
+        {/* HEADER SIMPLE */}
+        <div className="text-center mb-10">
+          <h2 className="text-3xl font-bold text-white">
+            Estudios <span className="text-cyan-400">y Certificaciones</span>
+          </h2>
+          <p className="text-gray-400 mt-2">
+            Formación y aprendizaje continuo
+          </p>
+        </div>
+
+        {/* GRID */}
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {estudios.map((e, i) => (
             <motion.div
-              key={index}
-              initial={{ opacity: 0, y: 50 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-50px" }}
-              transition={{ delay: index * 0.15, duration: 0.6 }}
-              className={`group relative bg-gray-900/80 backdrop-blur-sm rounded-2xl overflow-hidden border border-white/10 hover:border-cyan-400/50 transition-all duration-300 ${getGradientColor(estudio.type)} hover:shadow-2xl hover:scale-105`}
+              key={i}
+              initial={isMobile ? false : { opacity: 0, y: 20 }}
+              whileInView={isMobile ? {} : { opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4 }}
+              className="bg-gray-900/80 rounded-xl overflow-hidden border border-white/10 flex flex-col hover:border-cyan-400/50 transition-all duration-300"
             >
-              {/* Image Container */}
-              <div className="relative h-48 overflow-hidden">
-                <img
-                  src={estudio.imgSrc}
-                  alt={estudio.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+              {/* IMG con efecto hover */}
+              <div className="relative h-40 bg-gray-800 group overflow-hidden">
+                <motion.img
+                  src={e.imgSrc}
+                  alt={e.title}
+                  loading="lazy"
+                  className="w-full h-full object-cover"
+                  whileHover={{ scale: 1.05 }}
+                  transition={{ duration: 0.3 }}
                 />
                 
-                {/* Type Badge */}
-                <div className={`absolute top-3 left-3 flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/80 backdrop-blur-sm border ${getTypeColor(estudio.type)} text-xs font-medium`}>
-                  {getTypeIcon(estudio.type)}
-                  <span className="capitalize">{estudio.type}</span>
-                </div>
-
-                {/* Year Badge */}
-                <div className="absolute top-3 right-3 flex items-center gap-1 px-2 py-1 rounded-full bg-black/80 backdrop-blur-sm border border-white/20 text-white text-xs">
-                  <Calendar className="w-3 h-3" />
-                  {estudio.year}
-                </div>
-
-                {/* View Image Button */}
-                <motion.button
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                  onClick={() => setModalImg(estudio.imgSrc)}
-                  className="absolute bottom-3 right-3 p-2 bg-white/20 backdrop-blur-sm rounded-lg border border-white/30 text-white opacity-0 group-hover:opacity-100 transition-all duration-300"
-                  title="Ver certificado"
+                {/* Overlay oscuro en hover */}
+                <motion.div 
+                  className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center"
                 >
-                  <ExternalLink size={16} />
-                </motion.button>
+                  <motion.button
+                    variants={buttonVariants}
+                    initial="rest"
+                    whileHover="hover"
+                    whileTap="tap"
+                    onClick={() => setModalImg(e.imgSrc)}
+                    className="p-2 bg-black/60 rounded-full text-white hover: cursor-pointer"
+                  >
+                    <ZoomIn size={20} />
+                  </motion.button>
+                </motion.div>
+
+                {/* Badge de año flotante */}
+                <motion.div 
+                  className="absolute top-2 left-2 bg-black/70 text-cyan-400 text-xs px-2 py-1 rounded backdrop-blur-sm"
+                  initial={{ x: -50, opacity: 0 }}
+                  animate={{ x: 0, opacity: 1 }}
+                  transition={{ delay: 0.1 }}
+                >
+                  {e.year}
+                </motion.div>
               </div>
 
-              {/* Content - CONTENIDO SIEMPRE VISIBLE */}
-              <div className="p-6 relative z-10 bg-gray-900/80">
-                <h3 className="text-xl font-bold text-white mb-3 group-hover:text-cyan-400 transition-colors duration-300 line-clamp-2">
-                  {estudio.title}
+              {/* CONTENT */}
+              <div className="p-4 flex flex-col">
+                <h3 className="text-white font-bold mb-2">
+                  {e.title}
                 </h3>
 
-                <p className="text-gray-400 text-sm mb-3 leading-relaxed">
-                  {estudio.description}
+                <p className="text-gray-400 text-sm mb-2">
+                  {e.description}
                 </p>
 
-                {/* Duration */}
-                <div className="flex items-center gap-2 text-sm text-cyan-400 mb-4">
-                  <span>⏱️ {estudio.duration}</span>
-                </div>
+                <span className="text-xs text-cyan-400 mb-2">
+                  {e.duration}
+                </span>
 
-                {/* Skills Tags */}
-                <div className="flex flex-wrap gap-1 mb-4">
-                  {estudio.skills.slice(0, 3).map((skill, skillIndex) => (
-                    <span
-                      key={skillIndex}
-                      className="px-2 py-1 rounded-full bg-white/5 border border-white/10 text-gray-300 text-xs"
+                {/* SKILLS */}
+                <div className="flex flex-wrap gap-1 mb-3">
+                  {e.skills.slice(0, 3).map((s, idx) => (
+                    <motion.span 
+                      key={s} 
+                      className="text-xs text-gray-300 bg-white/5 px-2 py-1 rounded"
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: idx * 0.05 }}
                     >
-                      {skill}
-                    </span>
+                      {s}
+                    </motion.span>
                   ))}
-                  {estudio.skills.length > 3 && (
-                    <span className="px-2 py-1 rounded-full bg-white/5 border border-white/10 text-gray-400 text-xs">
-                      +{estudio.skills.length - 3}
-                    </span>
-                  )}
                 </div>
 
-                {/* Expandable Content */}
+                {/* EXPAND */}
+                <button
+                  onClick={() => setExpanded(expanded === i ? null : i)}
+                  className="text-cyan-400 text-sm flex items-center gap-2 hover:gap-3 transition-all duration-300 hover: cursor-pointer"
+                >
+                  {expanded === i ? "Ocultar" : "Ver más"}
+                  <motion.div
+                    animate={{ rotate: expanded === i ? 180 : 0 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <ChevronDown size={14} />
+                  </motion.div>
+                </button>
+
+                {/* EXTRA */}
                 <AnimatePresence>
-                  {expanded === index && (
+                  {expanded === i && (
                     <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: "auto" }}
-                      exit={{ opacity: 0, height: 0 }}
-                      transition={{ duration: 0.3 }}
+                      initial={isMobile ? false : { opacity: 0, height: 0 }}
+                      animate={isMobile ? {} : { opacity: 1, height: "auto" }}
+                      exit={isMobile ? {} : { opacity: 0, height: 0 }}
                       className="overflow-hidden"
                     >
-                      <p className="text-cyan-200 text-sm leading-relaxed mb-3">
-                        {estudio.extra}
-                      </p>
-                      
-                      {/* Full Skills List */}
-                      <div className="flex flex-wrap gap-1">
-                        {estudio.skills.map((skill, skillIndex) => (
-                          <span
-                            key={skillIndex}
-                            className="px-2 py-1 rounded-full bg-cyan-500/20 border border-cyan-500/30 text-cyan-300 text-xs"
-                          >
-                            {skill}
-                          </span>
-                        ))}
-                      </div>
+                      <motion.p 
+                        className="text-gray-300 text-sm mt-2"
+                        initial={{ y: 10, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        transition={{ delay: 0.1 }}
+                      >
+                        {e.extra}
+                      </motion.p>
                     </motion.div>
                   )}
                 </AnimatePresence>
-
-                {/* Expand Button */}
-                <motion.button
-                  onClick={() => toggleExpand(index)}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="w-full flex items-center justify-center gap-2 py-2 px-4 mt-4 rounded-xl bg-white/5 border border-white/10 text-cyan-400 hover:bg-white/10 transition-all duration-300 text-sm font-medium"
-                >
-                  <span>{expanded === index ? "Ver menos" : "Ver detalles"}</span>
-                  <motion.span
-                    animate={{ rotate: expanded === index ? 180 : 0 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    <ChevronDown size={16} />
-                  </motion.span>
-                </motion.button>
               </div>
             </motion.div>
           ))}
         </div>
       </div>
 
-      {/* Modal de imagen mejorado */}
+      {/* MODAL CON EFECTOS AVANZADOS */}
       <AnimatePresence>
         {modalImg && (
           <motion.div
-            className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+            key="modal-backdrop"
+            variants={backdropVariants}
+            initial="hidden"
+            animate="visible"
+            exit="hidden"
+            className="fixed inset-0 bg-black/95 backdrop-blur-md flex items-center justify-center z-50 p-4"
             onClick={() => setModalImg(null)}
           >
             <motion.div
-              className="relative max-w-4xl w-full max-h-[90vh]"
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.8, opacity: 0 }}
-              transition={{ type: "tween", damping: 25 }}
+              variants={modalVariants}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              className="relative max-w-5xl w-full"
               onClick={(e) => e.stopPropagation()}
             >
-              <img
-                src={modalImg}
-                alt="Certificado ampliado"
-                className="w-full h-full object-contain rounded-2xl shadow-2xl"
-              />
-              
+              {/* Botón cerrar con efecto */}
               <motion.button
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-                className="absolute -top-4 -right-4 w-10 h-10 bg-red-500 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-red-600 transition-colors"
+                className="hover: cursor-pointer absolute -top-11 right-0 text-white bg-white/10 p-2 rounded-full hover:bg-white/20 transition-colors"
                 onClick={() => setModalImg(null)}
+                whileHover={{ scale: 1.1, rotate: 90 }}
+                whileTap={{ scale: 0.9 }}
               >
-                ✕
+                <X size={24} />
               </motion.button>
+
+              {/* Imagen con zoom al entrar */}
+              <motion.div
+                variants={imageVariants}
+                initial="hidden"
+                animate="visible"
+                className="relative overflow-hidden rounded-xl shadow-2xl"
+              >
+                <motion.img
+                  src={modalImg}
+                  alt="Vista ampliada"
+                  className="w-full h-auto max-h-[85vh] object-contain"
+                  initial={{ scale: 1 }}
+                  transition={{ duration: 0.3 }}
+                />
+                
+                {/* Efecto de brillo en la imagen */}
+                <motion.div
+                  className="absolute inset-0 pointer-events-none"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 0.5 }}
+                  transition={{ delay: 0.2 }}
+                >
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                </motion.div>
+              </motion.div>
+
+              {/* Indicador de click para cerrar */}
+              <motion.p
+                className="text-center text-gray-400 text-sm mt-4"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+              >
+                Click fuera de la imagen para cerrar
+              </motion.p>
             </motion.div>
           </motion.div>
         )}
