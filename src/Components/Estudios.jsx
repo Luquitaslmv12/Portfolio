@@ -1,323 +1,166 @@
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Award, Calendar, ExternalLink, ChevronDown, X, ZoomIn } from "lucide-react";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { ChevronDown, ZoomIn } from "lucide-react";
 
-const estudios = [
-  {
-    title: "Técnico Superior en Programación",
-    description: "Carrera de grado en la Universidad Tecnológica Nacional",
-    extra: "Primeros pasos en la programación, aprobando todas las materias en tiempo y forma. Práctica final en grupo aprobada con una nota final de 8",
-    imgSrc: "/TITULO.jpeg",
-    year: "2018",
-    type: "universidad",
-    duration: "3 años",
-    skills: ["Programación", "Algoritmos", "Bases de Datos", "Ingeniería de Software"]
-  },
-  {
-    title: "Curso REACT JS",
-    description: "Curso didáctico a distancia en la plataforma CODERHOUSE",
-    extra: "Uso de Visual Studio Code, React + Vite como framework, Firebase como Base de Datos No relacional. Uso de librerías externas como Bootstrap, React Router, entre otras.",
-    imgSrc: "/REACT.png",
-    year: "2024",
-    type: "curso",
-    duration: "4 meses",
-    skills: ["React", "Firebase", "Vite", "Tailwind", "React Router"]
-  },
-  {
-    title: "Certificación SAP ABAP",
-    description: "Curso de introducción y aplicación real de sistemas",
-    extra: "Curso dictado por parte de DL Consultores",
-    imgSrc: "/ABAP.jpg",
-    year: "2024",
-    type: "certificación",
-    duration: "3 meses",
-    skills: ["SAP ABAP", "Sistemas ERP", "Programación Empresarial"]
-  },
-  {
-    title: "Jornadas Informáticas",
-    description: "Participación en la 4ta jornada binacional de Informática y Comunicaciones",
-    extra: "Organizada por la comisión técnica mixta de Salto Grande",
-    imgSrc: "/JOBIC.jpg",
-    year: "2015",
-    type: "evento",
-    duration: "2 días",
-    skills: ["Networking", "Tendencias TI", "Innovación Tecnológica"]
-  },
-  {
-    title: "Aprendizaje Continuo",
-    description: "Autodidacta en tecnologías modernas y desarrollo profesional",
-    extra: "React, Firebase, Tailwind, Next.js, testing, Python, Unity 3D, patrones de diseño. Manteniéndome actualizado con las últimas tendencias del desarrollo web y mobile.",
-    imgSrc: "/PLATAFORMAS.png",
-    year: "Desde 2021",
-    type: "autodidacta",
-    duration: "Continuo",
-    skills: ["React/Next.js", "Firebase", "Tailwind", "Python", "Unity", "Patrones de Diseño"]
-  },
-];
+import { studies } from "../data/profile";
+import GradientTile from "./ui/GradientTile";
+import Lightbox from "./ui/Lightbox";
+import Section from "./ui/Section";
+import SmartImage from "./ui/SmartImage";
 
-export default function Estudios({ isMobile }) {
-  const [expanded, setExpanded] = useState(null);
-  const [modalImg, setModalImg] = useState(null);
-  const [isZooming, setIsZooming] = useState(false);
+const EASE = [0.16, 1, 0.3, 1];
 
-  // Variantes de animación para el modal
-  const backdropVariants = {
-    hidden: { opacity: 0 },
-    visible: { opacity: 1, transition: { duration: 0.2 } }
-  };
+const TONES = ["cyan", "violet", "blue", "mint", "pink"];
 
-  const modalVariants = {
-    hidden: { 
-      scale: 0.8,
-      opacity: 0,
-      y: 50
-    },
-    visible: { 
-      scale: 1,
-      opacity: 1,
-      y: 0,
-      transition: {
-        type: "spring",
-        damping: 25,
-        stiffness: 300,
-        duration: 0.3
-      }
-    },
-    exit: { 
-      scale: 0.8,
-      opacity: 0,
-      y: 50,
-      transition: { duration: 0.2 }
-    }
-  };
+function TimelineItem({ study, index }) {
+  const [open, setOpen] = useState(false);
+  const [zoom, setZoom] = useState(null);
+  const reduced = useReducedMotion();
 
-  // Variantes para el zoom de la imagen dentro del modal
-  const imageVariants = {
-    hidden: { scale: 0.9, opacity: 0 },
-    visible: { 
-      scale: 1, 
-      opacity: 1,
-      transition: {
-        delay: 0.1,
-        type: "spring",
-        damping: 20,
-        stiffness: 400
-      }
-    }
-  };
-
-  // Efecto hover para el botón de zoom en la tarjeta
-  const buttonVariants = {
-    rest: { scale: 1, backgroundColor: "rgba(0,0,0,0.6)" },
-    hover: { 
-      scale: 1.1, 
-      backgroundColor: "rgba(0,150,255,0.8)",
-      transition: { duration: 0.2 }
-    },
-    tap: { scale: 0.95 }
-  };
+  const isLast = index === studies.length - 1;
+  const gradient = TONES[index % TONES.length];
 
   return (
-    <section id="estudios" className="py-16 px-4">
-      <div className="max-w-6xl mx-auto">
+    <motion.li
+      initial={reduced ? { opacity: 0 } : { opacity: 0, x: -26 }}
+      whileInView={{ opacity: 1, x: 0 }}
+      viewport={{ once: true, amount: 0.25 }}
+      transition={{ duration: 0.6, delay: (index % 3) * 0.08, ease: EASE }}
+      className="relative grid grid-cols-[auto_1fr] gap-x-5 pb-8 sm:gap-x-8 sm:pb-10"
+    >
+      {/* ---- rail: marker + connector ---- */}
+      <div className="relative flex flex-col items-center">
+        <span className="z-10 grid h-11 w-11 shrink-0 place-items-center rounded-full border border-white/10 bg-ink-900 shadow-lg sm:h-12 sm:w-12">
+          <GradientTile Icon={study.Icon} gradient={gradient} size="sm" />
+        </span>
 
-        {/* HEADER SIMPLE */}
-        <div className="text-center mb-10">
-          <h2 className="text-3xl font-bold text-white">
-            Estudios <span className="text-cyan-400">y Certificaciones</span>
-          </h2>
-          <p className="text-gray-400 mt-2">
-            Formación y aprendizaje continuo
-          </p>
-        </div>
-
-        {/* GRID */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {estudios.map((e, i) => (
-            <motion.div
-              key={i}
-              initial={isMobile ? false : { opacity: 0, y: 20 }}
-              whileInView={isMobile ? {} : { opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.4 }}
-              className="bg-gray-900/80 rounded-xl overflow-hidden border border-white/10 flex flex-col hover:border-cyan-400/50 transition-all duration-300"
-            >
-              {/* IMG con efecto hover */}
-              <div className="relative h-40 bg-gray-800 group overflow-hidden">
-                <motion.img
-                  src={e.imgSrc}
-                  alt={e.title}
-                  loading="lazy"
-                  className="w-full h-full object-cover"
-                  whileHover={{ scale: 1.05 }}
-                  transition={{ duration: 0.3 }}
-                />
-                
-                {/* Overlay oscuro en hover */}
-                <motion.div 
-                  className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center"
-                >
-                  <motion.button
-                    variants={buttonVariants}
-                    initial="rest"
-                    whileHover="hover"
-                    whileTap="tap"
-                    onClick={() => setModalImg(e.imgSrc)}
-                    className="p-2 bg-black/60 rounded-full text-white hover: cursor-pointer"
-                  >
-                    <ZoomIn size={20} />
-                  </motion.button>
-                </motion.div>
-
-                {/* Badge de año flotante */}
-                <motion.div 
-                  className="absolute top-2 left-2 bg-black/70 text-cyan-400 text-xs px-2 py-1 rounded backdrop-blur-sm"
-                  initial={{ x: -50, opacity: 0 }}
-                  animate={{ x: 0, opacity: 1 }}
-                  transition={{ delay: 0.1 }}
-                >
-                  {e.year}
-                </motion.div>
-              </div>
-
-              {/* CONTENT */}
-              <div className="p-4 flex flex-col">
-                <h3 className="text-white font-bold mb-2">
-                  {e.title}
-                </h3>
-
-                <p className="text-gray-400 text-sm mb-2">
-                  {e.description}
-                </p>
-
-                <span className="text-xs text-cyan-400 mb-2">
-                  {e.duration}
-                </span>
-
-                {/* SKILLS */}
-                <div className="flex flex-wrap gap-1 mb-3">
-                  {e.skills.slice(0, 3).map((s, idx) => (
-                    <motion.span 
-                      key={s} 
-                      className="text-xs text-gray-300 bg-white/5 px-2 py-1 rounded"
-                      initial={{ opacity: 0, scale: 0.8 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: idx * 0.05 }}
-                    >
-                      {s}
-                    </motion.span>
-                  ))}
-                </div>
-
-                {/* EXPAND */}
-                <button
-                  onClick={() => setExpanded(expanded === i ? null : i)}
-                  className="text-cyan-400 text-sm flex items-center gap-2 hover:gap-3 transition-all duration-300 hover: cursor-pointer"
-                >
-                  {expanded === i ? "Ocultar" : "Ver más"}
-                  <motion.div
-                    animate={{ rotate: expanded === i ? 180 : 0 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    <ChevronDown size={14} />
-                  </motion.div>
-                </button>
-
-                {/* EXTRA */}
-                <AnimatePresence>
-                  {expanded === i && (
-                    <motion.div
-                      initial={isMobile ? false : { opacity: 0, height: 0 }}
-                      animate={isMobile ? {} : { opacity: 1, height: "auto" }}
-                      exit={isMobile ? {} : { opacity: 0, height: 0 }}
-                      className="overflow-hidden"
-                    >
-                      <motion.p 
-                        className="text-gray-300 text-sm mt-2"
-                        initial={{ y: 10, opacity: 0 }}
-                        animate={{ y: 0, opacity: 1 }}
-                        transition={{ delay: 0.1 }}
-                      >
-                        {e.extra}
-                      </motion.p>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-            </motion.div>
-          ))}
-        </div>
+        {!isLast && (
+          <span
+            aria-hidden="true"
+            className="absolute top-12 bottom-0 w-px bg-gradient-to-b from-white/18 via-white/8 to-transparent sm:top-14"
+          />
+        )}
       </div>
 
-      {/* MODAL CON EFECTOS AVANZADOS */}
-      <AnimatePresence>
-        {modalImg && (
-          <motion.div
-            key="modal-backdrop"
-            variants={backdropVariants}
-            initial="hidden"
-            animate="visible"
-            exit="hidden"
-            className="fixed inset-0 bg-black/95 backdrop-blur-md flex items-center justify-center z-50 p-4"
-            onClick={() => setModalImg(null)}
+      {/* ---- card ---- */}
+      <article className="panel panel-lit group min-w-0 rounded-2xl p-5 transition-transform duration-500 ease-out hover:-translate-y-1 sm:p-6">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="font-mono text-xs font-medium tracking-wider text-brand-300">
+            {study.year}
+          </span>
+          <span aria-hidden="true" className="text-ink-700">
+            /
+          </span>
+          <span className="font-mono text-xs text-ink-500">
+            {study.duration}
+          </span>
+        </div>
+
+        <h3 className="mt-2 font-display text-lg font-bold text-ink-50 sm:text-xl">
+          {study.title}
+        </h3>
+
+        <p className="mt-1 text-sm font-medium text-brand-300/90">
+          {study.institution}
+        </p>
+        <p className="mt-2 text-sm leading-relaxed text-ink-400">
+          {study.description}
+        </p>
+
+        <div className="mt-5 flex items-start gap-4">
+          <button
+            type="button"
+            onClick={() => setZoom(study.image)}
+            aria-label={`Ampliar imagen de ${study.title}`}
+            className="group/img relative shrink-0 overflow-hidden rounded-xl border border-white/10 focus-visible:outline-2"
           >
-            <motion.div
-              variants={modalVariants}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
-              className="relative max-w-5xl w-full"
-              onClick={(e) => e.stopPropagation()}
+            <SmartImage
+              src={study.image}
+              alt={study.title}
+              className="h-20 w-24 sm:h-24 sm:w-32"
+              imgClassName="transition-transform duration-500 group-hover/img:scale-110"
+            />
+            <span
+              aria-hidden="true"
+              className="absolute inset-0 grid place-items-center bg-ink-950/55 opacity-0 transition-opacity duration-300 group-hover/img:opacity-100"
             >
-              {/* Botón cerrar con efecto */}
-              <motion.button
-                className="hover: cursor-pointer absolute -top-11 right-0 text-white bg-white/10 p-2 rounded-full hover:bg-white/20 transition-colors"
-                onClick={() => setModalImg(null)}
-                whileHover={{ scale: 1.1, rotate: 90 }}
-                whileTap={{ scale: 0.9 }}
-              >
-                <X size={24} />
-              </motion.button>
+              <ZoomIn size={18} className="text-ink-100" />
+            </span>
+          </button>
 
-              {/* Imagen con zoom al entrar */}
-              <motion.div
-                variants={imageVariants}
-                initial="hidden"
-                animate="visible"
-                className="relative overflow-hidden rounded-xl shadow-2xl"
-              >
-                <motion.img
-                  src={modalImg}
-                  alt="Vista ampliada"
-                  className="w-full h-auto max-h-[85vh] object-contain"
-                  initial={{ scale: 1 }}
-                  transition={{ duration: 0.3 }}
-                />
-                
-                {/* Efecto de brillo en la imagen */}
-                <motion.div
-                  className="absolute inset-0 pointer-events-none"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 0.5 }}
-                  transition={{ delay: 0.2 }}
-                >
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-                </motion.div>
-              </motion.div>
+          <ul className="flex min-w-0 flex-1 flex-wrap content-start gap-1.5">
+            {study.skills.map((skill) => (
+              <li key={skill} className="chip">
+                {skill}
+              </li>
+            ))}
+          </ul>
+        </div>
 
-              {/* Indicador de click para cerrar */}
-              <motion.p
-                className="text-center text-gray-400 text-sm mt-4"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 }}
-              >
-                Click fuera de la imagen para cerrar
-              </motion.p>
+        {/* expandable detail */}
+        <button
+          type="button"
+          onClick={() => setOpen((value) => !value)}
+          aria-expanded={open}
+          className="mt-5 inline-flex items-center gap-1.5 text-sm font-medium text-brand-300 transition-colors hover:text-brand-200"
+        >
+          {open ? "Ocultar detalle" : "Ver detalle"}
+          <motion.span
+            animate={{ rotate: open ? 180 : 0 }}
+            transition={{ duration: 0.3, ease: EASE }}
+            className="inline-flex"
+          >
+            <ChevronDown size={15} />
+          </motion.span>
+        </button>
+
+        <AnimatePresence initial={false}>
+          {open && (
+            <motion.div
+              key="detail"
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.4, ease: EASE }}
+              className="overflow-hidden"
+            >
+              <p className="mt-3 border-t border-white/8 pt-4 text-sm leading-relaxed text-ink-300">
+                {study.detail}
+              </p>
             </motion.div>
-          </motion.div>
+          )}
+        </AnimatePresence>
+      </article>
+
+      {/* AnimatePresence must live in the component that owns the mount, or
+          the exit animation is skipped when `zoom` flips to null. */}
+      <AnimatePresence>
+        {zoom && (
+          <Lightbox
+            src={zoom}
+            alt={`${study.title} — ${study.institution}`}
+            onClose={() => setZoom(null)}
+          />
         )}
       </AnimatePresence>
-    </section>
+    </motion.li>
+  );
+}
+
+export default function Estudios() {
+  return (
+    <Section
+      id="estudios"
+      eyebrow="Trayectoria"
+      title="Estudios y"
+      accent="certificaciones"
+      description="Formación de grado, certificaciones y aprendizaje continuo. Lo que sostengo mi trabajo."
+    >
+      <ol className="mx-auto max-w-3xl">
+        {studies.map((study, index) => (
+          <TimelineItem key={study.id} study={study} index={index} />
+        ))}
+      </ol>
+    </Section>
   );
 }

@@ -1,314 +1,261 @@
-import { motion } from "framer-motion";
-import { ExternalLink, Lock, Eye, Wrench, Smartphone, DollarSign, TrendingUp } from "lucide-react";
+import { useMemo, useState } from "react";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { ArrowUpRight, ExternalLink, Sparkles } from "lucide-react";
 
-const proyectos = [
-  {
-    title: "Responsive Landing Page - SPA",
-    description: "Una app web moderna con React y Tailwind CSS.",
-    imgSrc: "/minera.jpg",
-    url: "https://www.mineradellitoral.com.ar",
-    technologies: ["React", "Tailwind CSS", "Vite", "SPA"],
-    category: "Web Development",
-    status: "live",
-    featured: false
-  },
-  {
-    title: "CRM/ERP Gestión Automotriz Integral",
-    description: "Sistema completo para concesionarias con gestión multi-nivel, control de taller, inventario inteligente y reportes analytics en tiempo real.",
-    imgSrc: "/CRM.png",
-    url: "#",
-    technologies: ["React", "Firebase", "Node.js", "Material-UI", "Chart.js", "JWT Auth", "Roles", "Inventory"],
-    category: "Enterprise Software", 
-    status: "live",
-    featured: true
-  },
-  {
-    title: "Gestión de Flota de Camiones",
-    description: "Aplicación de gestión con autenticación hecha con React + Vite y Firebase.",
-    imgSrc: "/gestion-flota.png",
-    url: "#",
-    technologies: ["React", "Firebase", "Dashboard", "Auth System"],
-    category: "Business App",
-    status: "demo",
-    featured: false
-  },
-  {
-    title: "Landing Page Corporativa - Empresa Textil",
-    description: "Sitio web corporativo moderno con diseño orientado a conversión, optimizado para SEO y experiencia de usuario.",
-    imgSrc: "/escher.png",
-    url: "https://eschercyt.com.ar/",
-    technologies: ["React", "Tailwind CSS", "Framer Motion", "SEO", "Responsive"],
-    category: "Web Development",
-    status: "live",
-    featured: false
-  },
-  {
-    title: "FinanceTracker - App Móvil de Gastos",
-    description: "Aplicación móvil nativa para gestión de finanzas personales con estadísticas en tiempo real y sincronización en la nube.",
-    imgSrc: "/Gastos-App2.png", // Cambia por la ruta de tu imagen
-    url: "#", // URL de la app si está publicada
-    technologies: ["React Native", "Expo", "Firebase", "RealmDB", "Chart Kit", "AsyncStorage", "Context API"],
-    category: "Mobile App",
-    status: "live", // Cambia a "live" si ya está publicada
-    featured: true, // Marcar como destacado
-    // Campos adicionales específicos para esta app
-    metrics: {
-      downloads: "Beta Testing",
-      rating: "4.8",
-      features: ["Control de gastos", "Presupuestos", "Gráficos interactivos", "Exportación de datos"]
-    }
-  },
-  {
-    title: "App de Gestión de Inventario",
-    description: "Aplicación de gestión de inventario en Android Studio.",
-    imgSrc: "/Android.png",
-    url: "#",
-    technologies: ["Android Studio", "Java", "SQLite", "Mobile"],
-    category: "Mobile App",
-    status: "development",
-    featured: false
-  },
-];
+import { projects, projectFilters } from "../data/profile";
+import { litStyle } from "../lib/gradients";
+import { useSpotlight } from "../hooks/useUi";
+import Reveal from "./ui/Reveal";
+import Section from "./ui/Section";
+import SmartImage from "./ui/SmartImage";
 
-// Badge mejorado con más opciones
-const StatusBadge = ({ status }) => {
-  const config = {
-    live: { icon: <Eye size={12} />, text: "En Línea", color: "text-green-400", bg: "bg-green-500/20" },
-    development: { icon: <Wrench size={12} />, text: "En Desarrollo", color: "text-yellow-400", bg: "bg-yellow-500/20" },
-    demo: { icon: <Lock size={12} />, text: "Demo Privado", color: "text-blue-400", bg: "bg-blue-500/20" },
-    beta: { icon: <Smartphone size={12} />, text: "Beta Testing", color: "text-purple-400", bg: "bg-purple-500/20" }
-  };
+const EASE = [0.16, 1, 0.3, 1];
 
-  const s = config[status] || config.development;
-
-  return (
-    <div className={`absolute top-2 left-2 flex items-center gap-1 px-2 py-1 rounded-full backdrop-blur-sm ${s.bg} border border-white/10`}>
-      <span className={s.color}>{s.icon}</span>
-      <span className="text-white text-xs">{s.text}</span>
-    </div>
-  );
+/** Status presentation. Every tone needs a text, dot and ring style. */
+const TONES = {
+  live: {
+    label: "En línea",
+    dot: "bg-mint-400",
+    text: "text-mint-300",
+    ring: "border-mint-400/25 bg-mint-500/15",
+  },
+  beta: {
+    label: "Beta testing",
+    dot: "bg-grape-400",
+    text: "text-grape-300",
+    ring: "border-grape-400/25 bg-grape-500/15",
+  },
+  demo: {
+    label: "Demo privada",
+    dot: "bg-brand-400",
+    text: "text-brand-300",
+    ring: "border-brand-400/25 bg-brand-500/15",
+  },
+  dev: {
+    label: "En desarrollo",
+    dot: "bg-amber-400",
+    text: "text-amber-400",
+    ring: "border-amber-400/25 bg-amber-500/15",
+  },
 };
 
-// Componente de métricas para proyectos destacados
-const ProjectMetrics = ({ metrics }) => {
-  if (!metrics) return null;
-  
-  return (
-    <div className="mt-2 pt-2 border-t border-white/10">
-      <div className="flex items-center gap-3 text-xs">
-        {metrics.downloads && (
-          <span className="text-green-400 flex items-center gap-1">
-            <TrendingUp size={10} />
-            {metrics.downloads}
-          </span>
-        )}
-        {metrics.rating && (
-          <span className="text-yellow-400">
-            ⭐ {metrics.rating}
-          </span>
-        )}
-      </div>
-      {metrics.features && (
-        <div className="flex flex-wrap gap-1 mt-2">
-          {metrics.features.slice(0, 2).map((feature, idx) => (
-            <span key={idx} className="text-[10px] text-cyan-400 bg-cyan-500/10 px-1.5 py-0.5 rounded">
-              {feature}
-            </span>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-};
+function StatusPill({ tone }) {
+  const t = TONES[tone] ?? TONES.dev;
 
-// Card optimizada con soporte para métricas
-const ProjectCard = ({ proyecto, isMobile }) => {
-  const isFinanceApp = proyecto.title === "FinanceTracker - App Móvil de Gastos";
-  
   return (
-    <motion.div
-      initial={isMobile ? false : { opacity: 0, y: 30 }}
-      whileInView={isMobile ? {} : { opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.4 }}
-      className={`group bg-gray-900/80 rounded-xl overflow-hidden border transition-all duration-200 flex flex-col ${
-        proyecto.featured 
-          ? "border-cyan-400/40 shadow-lg shadow-cyan-500/10 hover:shadow-cyan-500/20" 
-          : "border-white/10 hover:border-cyan-400/40"
+    <span
+      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[0.7rem] font-medium backdrop-blur-md ${t.ring} ${t.text}`}
+    >
+      <span className={`h-1.5 w-1.5 rounded-full ${t.dot}`} />
+      {t.label}
+    </span>
+  );
+}
+
+function ProjectCard({ project }) {
+  const onMouseMove = useSpotlight();
+  const reduced = useReducedMotion();
+  const { featured, url, status, highlights } = project;
+
+  return (
+    <motion.article
+      layout={!reduced}
+      initial={reduced ? { opacity: 0 } : { opacity: 0, y: 26, scale: 0.98 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={reduced ? { opacity: 0 } : { opacity: 0, scale: 0.96 }}
+      transition={{ duration: 0.45, ease: EASE }}
+      onMouseMove={onMouseMove}
+      style={litStyle(featured ? "cyan" : "violet")}
+      className={`panel panel-lit spotlight group flex overflow-hidden rounded-2xl transition-[transform,box-shadow] duration-500 ease-out hover:-translate-y-1.5 ${
+        featured ? "lg:col-span-2 lg:flex-row" : "flex-col"
       }`}
     >
-      <div className="relative h-40 sm:h-48 overflow-hidden bg-gray-800">
-        <img
-          src={proyecto.imgSrc}
-          alt={proyecto.title}
-          loading="lazy"
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+      {/* ---- media ---- */}
+      <div className={`relative overflow-hidden ${featured ? "lg:w-[46%]" : ""}`}>
+        <SmartImage
+          src={project.image}
+          alt={`Captura de ${project.title}`}
+          className={`w-full ${featured ? "h-56 lg:h-full lg:min-h-[19rem]" : "h-48"}`}
+          imgClassName="transition-transform duration-[900ms] ease-out group-hover:scale-[1.07]"
         />
 
-        {/* Badge destacado */}
-        {proyecto.featured && (
-          <div className="absolute top-2 right-2 bg-gradient-to-r from-cyan-500 to-blue-500 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
-            <DollarSign size={10} />
-            Destacado
-          </div>
-        )}
+        {/* legibility scrim */}
+        <span
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 bg-gradient-to-t from-ink-950/85 via-ink-950/10 to-transparent"
+        />
 
-        <StatusBadge status={proyecto.status} />
-
-        {proyecto.url !== "#" && (
-          <a
-            href={proyecto.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="absolute bottom-2 right-2 p-1.5 bg-black/60 rounded-lg text-white opacity-0 group-hover:opacity-100 transition-all hover:scale-110"
-          >
-            <ExternalLink size={14} />
-          </a>
-        )}
-      </div>
-
-      <div className="p-4 flex-1 flex flex-col">
-        <div className="flex items-start justify-between gap-2 mb-2">
-          <h3 className="text-white font-bold group-hover:text-cyan-400 transition-colors flex-1">
-            {proyecto.title}
-          </h3>
-          {isFinanceApp && <DollarSign size={16} className="text-green-400 flex-shrink-0" />}
-        </div>
-
-        <p className="text-gray-400 text-sm mb-3 flex-1">
-          {proyecto.description}
-        </p>
-
-        {/* Categoría */}
-        <span className="text-xs text-cyan-400 mb-2">
-          {proyecto.category}
-        </span>
-
-        {/* Tecnologías */}
-        <div className="flex flex-wrap gap-1 mb-3">
-          {proyecto.technologies.slice(0, 3).map((tech) => (
-            <span key={tech} className="text-xs text-gray-300 bg-white/5 px-2 py-1 rounded">
-              {tech}
-            </span>
-          ))}
-          {proyecto.technologies.length > 3 && (
-            <span className="text-xs text-gray-500">
-              +{proyecto.technologies.length - 3}
+        <div className="absolute inset-x-4 top-4 flex items-start justify-between gap-2">
+          <StatusPill tone={status} />
+          {featured && (
+            <span className="inline-flex items-center gap-1 rounded-full border border-brand-300/30 bg-ink-950/70 px-2.5 py-1 text-[0.7rem] font-medium text-brand-200 backdrop-blur-md">
+              <Sparkles size={11} />
+              Destacado
             </span>
           )}
         </div>
 
-        {/* Métricas específicas (solo para FinanceTracker) */}
-        <ProjectMetrics metrics={proyecto.metrics} />
-
-     {/* Botón CTA */}
-{proyecto.url !== "#" ? (
-  <a
-    href={proyecto.url}
-    target="_blank"
-    rel="noopener noreferrer"
-    className="text-center py-2 rounded-lg text-sm mt-3 transition-all bg-cyan-600 text-white hover:bg-cyan-500 hover:scale-105 block"
-  >
-    Ver Proyecto
-  </a>
-) : (
-  <button
-    disabled
-    className="text-center py-2 rounded-lg text-sm mt-3 transition-all bg-white/5 text-gray-400 cursor-not-allowed block w-full"
-    onClick={(e) => {
-      e.preventDefault();
-      if (proyecto.status === "beta") {
-        alert("🚀 Próximamente disponible en las tiendas de aplicaciones");
-      } else {
-        alert("🔧 Proyecto en desarrollo");
-      }
-    }}
-  >
-    {proyecto.status === "beta" ? "Beta Testing" : "En Desarrollo"}
-  </button>
-)}
+        {url && (
+          <span className="pointer-events-none absolute bottom-4 right-4 grid h-10 w-10 place-items-center rounded-xl border border-white/15 bg-ink-950/70 text-ink-100 opacity-0 backdrop-blur-md transition-all duration-500 group-hover:opacity-100">
+            <ExternalLink size={17} />
+          </span>
+        )}
       </div>
-    </motion.div>
-  );
-};
 
-export default function Proyectos({ isMobile }) {
-  // Separar proyectos destacados al inicio si quieres
-  const featuredProjects = proyectos.filter(p => p.featured);
-  const otherProjects = proyectos.filter(p => !p.featured);
-  
-  return (
-    <section id="proyectos" className="py-12 px-4 relative">
-      <div className="max-w-6xl mx-auto">
+      {/* ---- body ---- */}
+      <div className="relative z-10 flex flex-1 flex-col p-6">
+        <span className="font-mono text-[0.68rem] tracking-[0.16em] text-ink-500 uppercase">
+          {project.category}
+        </span>
 
-        {/* Header */}
-        <div className="text-center mb-10">
-          <h2 className="text-3xl font-bold text-white">
-            Proyectos <span className="text-cyan-400">Destacados</span>
-          </h2>
-          <p className="text-gray-400 mt-2">
-            Una selección de mis trabajos
-          </p>
-        </div>
+        <h3 className="mt-2 font-display text-xl font-bold text-ink-50 transition-colors duration-300 group-hover:text-brand-200">
+          {project.title}
+        </h3>
 
-        {/* Proyectos Destacados (opcional, para mostrar primero los importantes) */}
-        {featuredProjects.length > 0 && (
-          <div className="mb-8">
-            <h3 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
-              <DollarSign className="text-cyan-400" />
-              Proyectos Destacados
-            </h3>
-            <div className="grid md:grid-cols-2 gap-6">
-              {featuredProjects.map((p) => (
-                <ProjectCard key={p.title} proyecto={p} isMobile={isMobile} />
-              ))}
-            </div>
-          </div>
+        <p className="mt-2.5 text-sm leading-relaxed text-ink-400">
+          {project.description}
+        </p>
+
+        {highlights?.length > 0 && (
+          <dl className="mt-4 flex flex-wrap gap-x-6 gap-y-2">
+            {highlights.map((item) => (
+              <div key={item.label}>
+                <dt className="text-[0.68rem] text-ink-500">{item.label}</dt>
+                <dd className="text-sm font-semibold text-ink-100">
+                  {item.value}
+                </dd>
+              </div>
+            ))}
+          </dl>
         )}
 
-        {/* Todos los proyectos */}
-        {otherProjects.length > 0 && (
-          <div>
-            {featuredProjects.length > 0 && (
-              <h3 className="text-xl font-semibold text-white mb-4">
-                Otros Proyectos
-              </h3>
-            )}
-            <div className="grid md:grid-cols-2 gap-6">
-              {otherProjects.map((p) => (
-                <ProjectCard key={p.title} proyecto={p} isMobile={isMobile} />
-              ))}
-            </div>
-          </div>
-        )}
+        <ul className="mt-5 flex flex-wrap gap-1.5">
+          {project.stack.map((tech) => (
+            <li key={tech} className="chip">
+              {tech}
+            </li>
+          ))}
+        </ul>
 
-        {/* CTA OPTIMIZADO */}
-        <motion.div
-          initial={isMobile ? false : { opacity: 0, y: 20 }}
-          whileInView={isMobile ? {} : { opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.4 }}
-          className="text-center mt-10"
-        >
-          <div className="bg-gradient-to-r from-cyan-500/5 to-blue-500/5 rounded-xl p-6 border border-cyan-500/20">
-            <h3 className="text-lg font-bold text-white mb-2">
-              ¿Te gusta lo que ves?
-            </h3>
-            <p className="text-gray-400 text-sm mb-4">
-              Trabajemos juntos en tu próximo proyecto.
-            </p>
-
+        {/* footer */}
+        <div className="mt-auto pt-6">
+          {url ? (
             <a
-              href="#contacto"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-cyan-600 to-blue-600 text-white rounded-xl hover:from-cyan-500 hover:to-blue-500 transition-all hover:scale-105"
+              href={url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn btn-ghost btn-shine w-full text-sm"
             >
-              <span>Iniciar Proyecto</span>
-              <ExternalLink size={16} />
+              Ver proyecto en vivo
+              <ArrowUpRight size={16} />
             </a>
-          </div>
-        </motion.div>
-
+          ) : (
+            <p className="flex items-center justify-center gap-2 rounded-xl border border-white/8 bg-white/3 px-4 py-2.5 text-sm text-ink-400">
+              <span className={`h-1.5 w-1.5 rounded-full ${TONES[status]?.dot}`} />
+              {TONES[status]?.label ?? "No disponible"}
+            </p>
+          )}
+        </div>
       </div>
-    </section>
+    </motion.article>
+  );
+}
+
+export default function Proyectos() {
+  const [filter, setFilter] = useState("Todos");
+  const reduced = useReducedMotion();
+
+  const visible = useMemo(
+    () =>
+      filter === "Todos"
+        ? projects
+        : projects.filter((project) => project.category === filter),
+    [filter]
+  );
+
+  const counts = useMemo(() => {
+    const map = { Todos: projects.length };
+    for (const project of projects) {
+      map[project.category] = (map[project.category] ?? 0) + 1;
+    }
+    return map;
+  }, []);
+
+  return (
+    <Section
+      id="proyectos"
+      eyebrow="Portafolio"
+      title="Proyectos"
+      accent="seleccionados"
+      description="Una muestra del trabajo real: sistemas de gestión, productos móviles y sitios orientados a conversión."
+      headingExtra={
+        <div
+          role="group"
+          aria-label="Filtrar proyectos por categoría"
+          className="mt-3 flex flex-wrap items-center justify-center gap-2"
+        >
+          {projectFilters.map((category) => {
+            const isActive = filter === category;
+            return (
+              <button
+                key={category}
+                type="button"
+                aria-pressed={isActive}
+                onClick={() => setFilter(category)}
+                className={`relative rounded-full px-4 py-2 text-sm font-medium transition-colors duration-300 ${
+                  isActive ? "text-ink-950" : "text-ink-300 hover:text-ink-50"
+                }`}
+              >
+                {isActive && (
+                  <motion.span
+                    layoutId="project-filter-pill"
+                    className="absolute inset-0 rounded-full bg-gradient-to-r from-brand-300 to-brand-400"
+                    transition={
+                      reduced
+                        ? { duration: 0 }
+                        : { type: "spring", stiffness: 400, damping: 34 }
+                    }
+                  />
+                )}
+                {!isActive && (
+                  <span className="absolute inset-0 rounded-full border border-white/10 bg-white/4" />
+                )}
+                <span className="relative">
+                  {category}
+                  <span
+                    className={`ml-1.5 font-mono text-[0.7rem] ${
+                      isActive ? "text-ink-950/60" : "text-ink-500"
+                    }`}
+                  >
+                    {counts[category]}
+                  </span>
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      }
+    >
+      <motion.div
+        layout={!reduced}
+        className="relative grid gap-5 sm:grid-cols-2 lg:gap-6"
+      >
+        <AnimatePresence mode="popLayout" initial={false}>
+          {visible.map((project) => (
+            <ProjectCard key={project.id} project={project} />
+          ))}
+        </AnimatePresence>
+      </motion.div>
+
+      {/* live region so filter changes are announced */}
+      <Reveal className="mt-10 text-center">
+        <p aria-live="polite" className="text-sm text-ink-500">
+          Mostrando{" "}
+          <span className="font-medium text-ink-300">{visible.length}</span>{" "}
+          {visible.length === 1 ? "proyecto" : "proyectos"}
+          {filter !== "Todos" && ` en ${filter}`}
+        </p>
+      </Reveal>
+    </Section>
   );
 }

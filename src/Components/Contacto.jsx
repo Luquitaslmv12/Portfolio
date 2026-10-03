@@ -1,313 +1,483 @@
-import { useState, useEffect } from "react";
-import emailjs from "emailjs-com";
-import {
-  Mail,
-  User,
-  MessageSquare,
-  CheckCircle2,
-  AlertTriangle,
-  Phone,
-  MapPin,
-  Send,
-  Clock,
-} from "lucide-react";
-import { FaWhatsapp, FaLinkedin, FaGithub } from "react-icons/fa";
-import { motion, AnimatePresence } from "framer-motion";
+import { useCallback, useRef, useState } from "react";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { ArrowUpRight, CheckCircle2, Loader2, Mail, Send } from "lucide-react";
+import emailjs from "@emailjs/browser";
+
+import { contactChannels, faqs, profile } from "../data/profile";
+import GradientTile from "./ui/GradientTile";
+import Reveal from "./ui/Reveal";
+import Section from "./ui/Section";
+import { useSpotlight } from "../hooks/useUi";
+
+const EASE = [0.16, 1, 0.3, 1];
+const MAX_MESSAGE = 800;
+
+const BUDGETS = [
+  "No estoy seguro todavía",
+  "Sitio web / landing",
+  "Sistema a medida",
+  "App móvil",
+  "Mantenimiento / mejoras",
+];
+
+const EMAILJS = {
+  service: import.meta.env.VITE_EMAILJS_SERVICE_ID || "service_n9n3i3n",
+  template: import.meta.env.VITE_EMAILJS_TEMPLATE_ID || "template_r07tjwh",
+  key: import.meta.env.VITE_EMAILJS_PUBLIC_KEY || "hVwoxHrA3Y8o5A9Gg",
+};
+
+/* --------------------------------------------------------------------------
+   Validation — returns an error string, or undefined when the value is valid.
+   -------------------------------------------------------------------------- */
+const RULES = {
+  name: (value) => {
+    const v = value.trim();
+    if (!v) return "Contame tu nombre.";
+    if (v.length < 2) return "El nombre es demasiado corto.";
+    return undefined;
+  },
+  email: (value) => {
+    const v = value.trim();
+    if (!v) return "Necesito un email para responderte.";
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v)) return "Ese email no parece válido.";
+    return undefined;
+  },
+  message: (value) => {
+    const v = value.trim();
+    if (!v) return "Contame brevemente sobre el proyecto.";
+    if (v.length < 10) return `Sumá un poco más de detalle (${v.length}/10 caracteres).`;
+    return undefined;
+  },
+};
+
+const FIELDS = [
+  { name: "name", label: "Nombre", type: "text", autoComplete: "name", placeholder: "Tu nombre" },
+  { name: "email", label: "Email", type: "email", autoComplete: "email", placeholder: "tu@email.com" },
+];
+
+const EMPTY = { name: "", email: "", message: "", budget: BUDGETS[0] };
 
 export default function Contacto() {
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    message: "",
-  });
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [shake, setShake] = useState(false);
+  const [values, setValues] = useState(EMPTY);
+  const [errors, setErrors] = useState({});
+  const [submitted, setSubmitted] = useState(false);
+  const [state, setState] = useState("idle"); // idle | sending | sent
+  const [formError, setFormError] = useState("");
+  const formRef = useRef(null);
 
-  const isMobileDevice = () => {
-    return /Android|iPhone|iPad|iPod|Windows Phone/i.test(navigator.userAgent);
+  const onMouseMove = useSpotlight();
+  const reduced = useReducedMotion();
+
+  const update = (name, value) => {
+    setValues((prev) => ({ ...prev, [name]: value }));
+    // Only clear errors once the field has been flagged, to avoid nagging
+    // while someone is still typing their first character.
+    if (submitted || errors[name]) {
+      setErrors((prev) => {
+        const next = { ...prev };
+        if (next[name] || submitted) delete next[name];
+        return next;
+      });
+    }
   };
 
-  const phoneNumber = "5493447432091";
-  const message = encodeURIComponent("Hola, quisiera más información");
-
-  const whatsappURL = isMobileDevice()
-    ? `https://api.whatsapp.com/send?phone=${phoneNumber}&text=${message}`
-    : `https://web.whatsapp.com/send?phone=${phoneNumber}&text=${message}`;
-
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-    setError("");
+  const onBlur = (name) => {
+    if (!values[name]) return;
+    setErrors((prev) => ({ ...prev, [name]: RULES[name]?.(values[name]) }));
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const { name, email, message } = formData;
+  const validate = useCallback(() => {
+    const next = {};
+    for (const name of ["name", "email", "message"]) {
+      const error = RULES[name](values[name]);
+      if (error) next[name] = error;
+    }
+    return next;
+  }, [values]);
 
-    if (!name.trim() || !email.trim() || !message.trim()) {
-      setError("Por favor, completa todos los campos.");
-      setShake(true);
-      setTimeout(() => setShake(false), 500);
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setSubmitted(true);
+
+    const nextErrors = validate();
+    setErrors(nextErrors);
+
+    if (Object.keys(nextErrors).length > 0) {
+      // Move focus to the first invalid field for keyboard and screen readers.
+      const firstInvalid = Object.keys(nextErrors)[0];
+      formRef.current?.querySelector(`[name="${firstInvalid}"]`)?.focus();
       return;
     }
 
-    setIsLoading(true);
+    setState("sending");
+    setFormError("");
 
     try {
       await emailjs.send(
-        "service_n9n3i3n",
-        "template_r07tjwh",
+        EMAILJS.service,
+        EMAILJS.template,
         {
-          from_name: name,
-          reply_to: email,
-          message: message,
+          from_name: values.name.trim(),
+          reply_to: values.email.trim(),
+          message: values.message.trim(),
+          presupuesto: values.budget,
         },
-        "hVwoxHrA3Y8o5A9Gg"
+        EMAILJS.key
       );
-      
-      setSuccess(true);
-      setFormData({ name: "", email: "", message: "" });
-    } catch (error) {
-      setError("Hubo un error al enviar el mensaje. Intenta nuevamente.");
-    } finally {
-      setIsLoading(false);
+
+      setState("sent");
+      setValues(EMPTY);
+      setSubmitted(false);
+    } catch {
+      setState("idle");
+      setFormError(
+        "No pude enviar el mensaje. Probá de nuevo o escribime directo por WhatsApp."
+      );
     }
   };
 
-  useEffect(() => {
-    if (success || error) {
-      const timer = setTimeout(() => {
-        setSuccess(false);
-        setError("");
-      }, 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [success, error]);
+  const reset = () => {
+    setState("idle");
+    setFormError("");
+  };
 
-  const contactInfo = [
-    {
-      icon: <Mail className="w-5 h-5 sm:w-6 sm:h-6" />,
-      label: "Email",
-      value: "lucaslmv12@gmail.com",
-      href: "mailto:lucaslmv12@gmail.com",
-      color: "from-cyan-500/20 to-blue-500/10"
-    },
-    {
-      icon: <Phone className="w-5 h-5 sm:w-6 sm:h-6" />,
-      label: "Teléfono",
-      value: "+54 9 3447 43-2091",
-      href: `tel:${phoneNumber}`,
-      color: "from-green-500/20 to-emerald-500/10"
-    },
-    {
-      icon: <MapPin className="w-5 h-5 sm:w-6 sm:h-6" />,
-      label: "Ubicación",
-      value: "Colón, Entre Ríos, Argentina",
-      color: "from-purple-500/20 to-pink-500/10"
-    },
-    {
-      icon: <Clock className="w-5 h-5 sm:w-6 sm:h-6" />,
-      label: "Disponibilidad",
-      value: "Lun - Vie • 9:00 - 18:00",
-      color: "from-orange-500/20 to-red-500/10"
-    }
-  ];
+  const remaining = MAX_MESSAGE - values.message.length;
+  const busy = state === "sending" || state === "sent";
 
   return (
-    <>
-      <section id="contacto" className="py-12 sm:py-16 lg:py-20 px-3 sm:px-4 md:px-6 lg:px-8 min-h-screen flex items-center">
-        <div className="max-w-7xl mx-auto w-full">
-          {/* Header - Responsive */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true, margin: "-50px" }}
-            className="text-center mb-8 sm:mb-12 lg:mb-16 px-2"
+    <Section
+      id="contacto"
+      eyebrow="Contacto"
+      title="¿Hablamos de"
+      accent="tu proyecto?"
+      description="Contame qué necesitás y te respondo con una propuesta concreta. Sin vueltas y sin compromiso."
+    >
+      <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr] lg:gap-8">
+        {/* ---- channels ---- */}
+        <div className="flex flex-col gap-4">
+          <ul className="grid gap-3">
+            {contactChannels.map((channel, index) => {
+              const body = (
+                <>
+                  <GradientTile Icon={channel.Icon} gradient={channel.gradient} size="sm" />
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-[0.7rem] tracking-wide text-ink-500 uppercase">
+                      {channel.label}
+                    </span>
+                    <span className="block truncate text-sm font-medium text-ink-100">
+                      {channel.value}
+                    </span>
+                  </span>
+                  {channel.href && (
+                    <ArrowUpRight
+                      size={16}
+                      className="shrink-0 text-ink-500 transition-all duration-300 group-hover:translate-x-0.5 group-hover:text-brand-300"
+                    />
+                  )}
+                </>
+              );
+
+              return (
+                <motion.li
+                  key={channel.id}
+                  initial={reduced ? { opacity: 0 } : { opacity: 0, y: 18 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, amount: 0.3 }}
+                  transition={{ duration: 0.5, delay: index * 0.07, ease: EASE }}
+                >
+                  {channel.href ? (
+                    <a
+                      href={channel.href}
+                      target={channel.external ? "_blank" : undefined}
+                      rel={channel.external ? "noopener noreferrer" : undefined}
+                      className="panel panel-lit spotlight group flex items-center gap-4 rounded-2xl p-4 transition-transform duration-400 ease-out hover:-translate-y-0.5"
+                      onMouseMove={onMouseMove}
+                    >
+                      {body}
+                    </a>
+                  ) : (
+                    <div className="panel flex items-center gap-4 rounded-2xl p-4">
+                      {body}
+                    </div>
+                  )}
+                </motion.li>
+              );
+            })}
+          </ul>
+
+          <Reveal delay={0.2} className="mt-auto">
+            <div className="panel panel-lit rounded-2xl p-6">
+              <p className="text-sm text-ink-400">
+                <Mail size={16} className="mb-3 text-brand-400" />
+                ¿Preferís el correo? Escribime directo a{" "}
+                <a
+                  href={`mailto:${profile.email}`}
+                  className="font-medium text-brand-300 underline decoration-brand-400/40 underline-offset-4 transition-colors hover:text-brand-200"
+                >
+                  {profile.email}
+                </a>
+              </p>
+            </div>
+          </Reveal>
+        </div>
+
+        {/* ---- form ---- */}
+        <motion.div
+          initial={reduced ? { opacity: 0 } : { opacity: 0, y: 28 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.15 }}
+          transition={{ duration: 0.7, ease: EASE }}
+          className="panel panel-lit relative overflow-hidden rounded-3xl p-6 sm:p-8"
+          style={{ "--lit-a": "#22d3ee", "--lit-b": "#8b5cf6" }}
+        >
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute -top-28 -right-20 h-64 w-64 rounded-full bg-brand-500/12 blur-3xl"
+          />
+
+          <form
+            ref={formRef}
+            onSubmit={handleSubmit}
+            noValidate
+            className="relative z-10 flex flex-col gap-5"
           >
-            <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 bg-clip-text text-transparent mb-4 sm:mb-6">
-              Contacto
-            </h2>
-            <p className="text-base sm:text-lg md:text-xl text-gray-300 max-w-xs sm:max-w-md md:max-w-2xl mx-auto leading-relaxed">
-              ¿Tienes un proyecto en mente? Hablemos y hagámoslo realidad juntos.
-            </p>
-          </motion.div>
-
-          {/* Grid Principal - Responsive */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 lg:gap-12 items-start">
-            {/* Información de Contacto - Responsive */}
-            <motion.div
-              initial={{ opacity: 0, x: -30 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6 }}
-              viewport={{ once: true, margin: "-50px" }}
-              className="space-y-6 sm:space-y-8 order-2 lg:order-1"
-            >
-              <div>
-                <h3 className="text-xl sm:text-2xl font-bold text-white mb-4 sm:mb-6">Vías de Contacto</h3>
-                
-                {/* Info Cards - Responsive */}
-                <div className="grid gap-3 sm:gap-4">
-                  {contactInfo.map((item, index) => (
-                    <motion.a
-                      key={item.label}
-                      href={item.href}
-                      target={item.href ? "_blank" : undefined}
-                      rel={item.href ? "noopener noreferrer" : undefined}
-                      initial={{ opacity: 0, y: 15 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.1 }}
-                      viewport={{ once: true }}
-                      whileHover={{ scale: 1.02, x: 5 }}
-                      whileTap={{ scale: 0.98 }}
-                      className={`flex items-center gap-3 sm:gap-4 p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-gradient-to-r ${item.color} bg-opacity-10 border border-white/10 backdrop-blur-sm hover:bg-opacity-20 transition-all duration-300 group`}
-                    >
-                      <div className={`p-2 sm:p-3 rounded-lg sm:rounded-xl bg-gradient-to-r ${item.color} text-white flex-shrink-0`}>
-                        {item.icon}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs sm:text-sm text-gray-300 truncate">{item.label}</p>
-                        <p className="text-white font-medium text-sm sm:text-base truncate">{item.value}</p>
-                      </div>
-                    </motion.a>
-                  ))}
-                </div>
-              </div>
-            </motion.div>
-
-            {/* Formulario - Responsive */}
-            <motion.div
-              initial={{ opacity: 0, x: 30 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6 }}
-              viewport={{ once: true, margin: "-50px" }}
-              className={`bg-gradient-to-br from-gray-900/80 to-cyan-900/20 backdrop-blur-xl rounded-2xl sm:rounded-3xl shadow-xl sm:shadow-2xl p-4 sm:p-6 md:p-8 border border-cyan-500/20 ${
-                shake ? "animate-shake" : ""
-              } order-1 lg:order-2`}
-            >
-              <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
-                {[
-                  { name: "name", icon: User, placeholder: "Nombre completo", delay: 0.1 },
-                  { name: "email", icon: Mail, placeholder: "tu@email.com", delay: 0.2 },
-                  { name: "message", icon: MessageSquare, placeholder: "Cuéntame sobre tu proyecto...", delay: 0.3, isTextarea: true }
-                ].map((field, index) => (
-                  <motion.div
-                    key={field.name}
-                    initial={{ opacity: 0, y: 15 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    transition={{ delay: field.delay }}
-                    viewport={{ once: true }}
-                    className="relative"
+            {FIELDS.map((field) => {
+              const error = errors[field.name];
+              return (
+                <div key={field.name}>
+                  <label
+                    htmlFor={field.name}
+                    className="mb-2 block text-sm font-medium text-ink-300"
                   >
-                    <field.icon className="absolute top-3 sm:top-4 left-3 sm:left-4 text-cyan-400 w-4 h-4 sm:w-5 sm:h-5" />
-                    {field.isTextarea ? (
-                      <textarea
-                        name={field.name}
-                        placeholder={field.placeholder}
-                        rows="4"
-                        value={formData[field.name]}
-                        onChange={handleChange}
-                        className="w-full pl-10 sm:pl-12 pr-3 sm:pr-4 py-3 sm:py-4 rounded-xl sm:rounded-2xl bg-white/5 border border-cyan-400/30 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent transition-all resize-none backdrop-blur-sm text-sm sm:text-base"
-                      />
-                    ) : (
-                      <input
-                        type={field.name === "email" ? "email" : "text"}
-                        name={field.name}
-                        placeholder={field.placeholder}
-                        value={formData[field.name]}
-                        onChange={handleChange}
-                        className="w-full pl-10 sm:pl-12 pr-3 sm:pr-4 py-3 sm:py-4 rounded-xl sm:rounded-2xl bg-white/5 border border-cyan-400/30 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent transition-all backdrop-blur-sm text-sm sm:text-base"
-                      />
-                    )}
-                  </motion.div>
+                    {field.label}
+                  </label>
+                  <input
+                    id={field.name}
+                    name={field.name}
+                    type={field.type}
+                    autoComplete={field.autoComplete}
+                    placeholder={field.placeholder}
+                    value={values[field.name]}
+                    onChange={(e) => update(field.name, e.target.value)}
+                    onBlur={() => onBlur(field.name)}
+                    aria-invalid={error ? "true" : undefined}
+                    aria-describedby={
+                      error ? `${field.name}-error` : `${field.name}-hint`
+                    }
+                    className="field"
+                  />
+                  {error ? (
+                    <p
+                      id={`${field.name}-error`}
+                      role="alert"
+                      className="mt-2 text-xs text-rose-300"
+                    >
+                      {error}
+                    </p>
+                  ) : (
+                    <p id={`${field.name}-hint`} className="sr-only">
+                      {field.label}
+                    </p>
+                  )}
+                </div>
+              );
+            })}
+
+            {/* budget */}
+            <div>
+              <label
+                htmlFor="budget"
+                className="mb-2 block text-sm font-medium text-ink-300"
+              >
+                Tipo de proyecto
+              </label>
+              <select
+                id="budget"
+                name="budget"
+                value={values.budget}
+                onChange={(e) => update("budget", e.target.value)}
+                className="field cursor-pointer appearance-none bg-[url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%2375859f%22 stroke-width=%222%22><path d=%22M6 9l6 6 6-6%22/></svg>')] bg-[length:1.1rem] bg-[right_0.9rem_center] bg-no-repeat pr-11"
+              >
+                {BUDGETS.map((option) => (
+                  <option key={option} value={option} className="bg-ink-900">
+                    {option}
+                  </option>
                 ))}
+              </select>
+            </div>
 
-                {/* Feedback Messages - Responsive */}
-                <AnimatePresence>
-                  {error && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: "auto" }}
-                      exit={{ opacity: 0, height: 0 }}
-                      className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 bg-red-500/20 border border-red-500/30 rounded-xl sm:rounded-2xl text-red-400"
-                    >
-                      <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
-                      <span className="text-xs sm:text-sm">{error}</span>
-                    </motion.div>
-                  )}
-                  
-                  {success && (
-                    <motion.div
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.9 }}
-                      className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 bg-green-500/20 border border-green-500/30 rounded-xl sm:rounded-2xl text-green-400"
-                    >
-                      <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0 animate-pulse" />
-                      <span className="text-xs sm:text-sm font-medium">¡Mensaje enviado! Te responderé pronto.</span>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-
-                {/* Submit Button - Responsive */}
-                <motion.button
-                  type="submit"
-                  disabled={isLoading || success}
-                  whileHover={{ scale: isLoading || success ? 1 : 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  className={`w-full py-3 sm:py-4 px-6 sm:px-8 rounded-xl sm:rounded-2xl font-semibold text-base sm:text-lg transition-all duration-300 flex items-center justify-center gap-2 sm:gap-3 ${
-                    isLoading || success
-                      ? "bg-gradient-to-r from-green-500 to-emerald-600 text-white cursor-not-allowed"
-                      : "bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white shadow-lg hover:shadow-cyan-500/25 hover:cursor-pointer"
+            {/* message */}
+            <div>
+              <div className="mb-2 flex items-baseline justify-between gap-4">
+                <label htmlFor="message" className="text-sm font-medium text-ink-300">
+                  Mensaje
+                </label>
+                <span
+                  className={`font-mono text-xs ${
+                    remaining < 60 ? "text-amber-400" : "text-ink-600"
                   }`}
                 >
-                  {isLoading ? (
-                    <>
-                      <motion.div
-                        animate={{ rotate: 360 }}
-                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                        className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-white border-t-transparent rounded-full"
-                      />
-                      <span className="text-sm sm:text-base">Enviando...</span>
-                    </>
-                  ) : success ? (
-                    <>
-                      <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5" />
-                      <span className="text-sm sm:text-base">¡Enviado!</span>
-                    </>
-                  ) : (
-                    <>
-                      <Send className="w-4 h-4 sm:w-5 sm:h-5" />
-                      <span className="text-sm sm:text-base">Enviar Mensaje</span>
-                    </>
-                  )}
-                </motion.button>
-              </form>
-            </motion.div>
-          </div>
-        </div>
-      </section>
+                  {values.message.length}/{MAX_MESSAGE}
+                </span>
+              </div>
+              <textarea
+                id="message"
+                name="message"
+                rows={5}
+                maxLength={MAX_MESSAGE}
+                placeholder="¿Qué necesitás? Contexto, plazos, ideas sueltas… todo sirve."
+                value={values.message}
+                onChange={(e) => update("message", e.target.value)}
+                onBlur={() => onBlur("message")}
+                aria-invalid={errors.message ? "true" : undefined}
+                aria-describedby={errors.message ? "message-error" : undefined}
+                className="field resize-none"
+              />
+              {errors.message && (
+                <p id="message-error" role="alert" className="mt-2 text-xs text-rose-300">
+                  {errors.message}
+                </p>
+              )}
+            </div>
 
-      {/* WhatsApp Float - Responsive */}
-      <motion.a
-        href={whatsappURL}
-        target="_blank"
-        rel="noopener noreferrer"
-        initial={{ scale: 0, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        whileHover={{ scale: 1.1, rotate: 5 }}
-        whileTap={{ scale: 0.9 }}
-        className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 md:bottom-8 md:right-8 w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-green-500 text-white rounded-xl sm:rounded-full flex items-center justify-center shadow-xl sm:shadow-2xl shadow-green-500/30 z-50 hover:shadow-green-500/50 transition-all"
-        aria-label="Contactar por WhatsApp"
-      >
-        <FaWhatsapp className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7" />
-        <motion.div
-          className="absolute -top-1 -right-1 w-2 h-2 sm:w-3 sm:h-3 bg-green-400 rounded-full animate-bounce"
-          animate={{ scale: [1, 1.2, 1] }}
-          transition={{ repeat: Infinity, duration: 2 }}
-        />
-      </motion.a>
-    </>
+            {/* feedback */}
+            <div aria-live="polite" aria-atomic="true">
+              <AnimatePresence mode="wait">
+                {formError && (
+                  <motion.p
+                    key="error"
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="rounded-xl border border-rose-400/25 bg-rose-500/10 px-4 py-3 text-sm text-rose-200"
+                  >
+                    {formError}
+                  </motion.p>
+                )}
+
+                {state === "sent" && (
+                  <motion.p
+                    key="sent"
+                    initial={{ opacity: 0, y: -6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0 }}
+                    className="flex items-center gap-2.5 rounded-xl border border-mint-400/25 bg-mint-500/10 px-4 py-3 text-sm font-medium text-mint-200"
+                  >
+                    <CheckCircle2 size={17} className="shrink-0" />
+                    ¡Mensaje enviado! Te respondo dentro de las próximas 24 h.
+                  </motion.p>
+                )}
+              </AnimatePresence>
+            </div>
+
+            <button
+              type="submit"
+              disabled={busy}
+              className={`btn btn-shine w-full ${
+                state === "sent" ? "btn-ghost !text-mint-300" : "btn-primary"
+              }`}
+            >
+              {state === "sending" ? (
+                <>
+                  <Loader2 size={17} className="animate-spin" />
+                  Enviando…
+                </>
+              ) : state === "sent" ? (
+                <>
+                  <CheckCircle2 size={17} />
+                  Enviado
+                </>
+              ) : (
+                <>
+                  <Send size={17} />
+                  Enviar mensaje
+                </>
+              )}
+            </button>
+
+            {state === "sent" && (
+              <button
+                type="button"
+                onClick={reset}
+                className="text-sm text-ink-500 transition-colors hover:text-ink-300"
+              >
+                Enviar otro mensaje
+              </button>
+            )}
+
+            <p className="text-center text-xs text-ink-600">
+              Sin spam. Tus datos solo se usan para responderte.
+            </p>
+          </form>
+        </motion.div>
+      </div>
+
+      {/* ---- FAQ ---- */}
+      <Reveal className="mt-16">
+        <h3 className="mb-6 text-center font-display text-xl font-bold text-ink-50 sm:text-2xl">
+          Preguntas frecuentes
+        </h3>
+        <FaqList />
+      </Reveal>
+    </Section>
+  );
+}
+
+function FaqList() {
+  const [open, setOpen] = useState(0);
+
+  return (
+    <ul className="mx-auto grid max-w-3xl gap-3">
+      {faqs.map((item, index) => {
+        const isOpen = open === index;
+        return (
+          <li
+            key={item.q}
+            className="panel panel-lit overflow-hidden rounded-xl transition-colors duration-300"
+          >
+            <h4>
+              <button
+                type="button"
+                onClick={() => setOpen(isOpen ? -1 : index)}
+                aria-expanded={isOpen}
+                className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left"
+              >
+                <span
+                  className={`text-sm font-medium transition-colors ${
+                    isOpen ? "text-brand-200" : "text-ink-100"
+                  }`}
+                >
+                  {item.q}
+                </span>
+                <span
+                  aria-hidden="true"
+                  className={`grid h-6 w-6 shrink-0 place-items-center rounded-full border border-white/10 transition-transform duration-300 ${
+                    isOpen ? "rotate-45" : ""
+                  }`}
+                >
+                  <span className="text-ink-300">+</span>
+                </span>
+              </button>
+            </h4>
+
+            <AnimatePresence initial={false}>
+              {isOpen && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.35, ease: EASE }}
+                  className="overflow-hidden"
+                >
+                  <p className="px-5 pb-4 text-sm leading-relaxed text-ink-400">
+                    {item.a}
+                  </p>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </li>
+        );
+      })}
+    </ul>
   );
 }

@@ -4,7 +4,17 @@ import tailwindcss from '@tailwindcss/vite'
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react(),
-    tailwindcss()
-  ],
+  plugins: [react(), tailwindcss()],
+  build: {
+    // Split vendor code out of the app bundle: framework upgrades stay cached
+    // across content changes instead of invalidating the whole chunk.
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          react: ['react', 'react-dom'],
+          motion: ['framer-motion'],
+        },
+      },
+    },
+  },
 })

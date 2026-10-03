@@ -1,157 +1,119 @@
-import { CodeXml, LayoutDashboard, Cloud, Shield, Monitor, Smartphone, ArrowRight } from "lucide-react";
-import { motion } from "framer-motion";
-import TiltedCard from "../Snippets/TiltedCard";
+import { motion, useReducedMotion } from "framer-motion";
+import { ArrowRight, Check } from "lucide-react";
 
-const servicios = [
-  {
-    icon: <CodeXml className="w-8 h-8" />,
-    title: "Desarrollo Frontend",
-    description: "Construyo interfaces limpias, rápidas y accesibles usando React, Tailwind y más.",
-    features: ["React/Next.js", "TypeScript", "Tailwind CSS", "Performance"],
-    gradient: "from-cyan-500 to-blue-500",
-    delay: 0.1,
-    cardColor: "bg-gradient-to-br from-cyan-900/20 to-blue-900/20",
-    bgImage: "/images/frontend-bg.jpg" // Opcional: imagen de fondo para el efecto 3D
-  },
-  {
-    icon: <LayoutDashboard className="w-8 h-8" />,
-    title: "UI/UX Design",
-    description: "Diseños intuitivos y atractivos que mejoran la experiencia del usuario.",
-    features: ["Figma/Adobe XD", "Prototipado", "Design System", "User Research"],
-    gradient: "from-violet-500 to-purple-600",
-    delay: 0.2,
-    cardColor: "bg-gradient-to-br from-purple-900/20 to-violet-900/20",
-    bgImage: "/images/design-bg.jpg"
-  },
-  {
-    icon: <Cloud className="w-8 h-8" />,
-    title: "Backend y APIs",
-    description: "Implemento APIs robustas y escalables con Node.js, Express y bases de datos.",
-    features: ["Node.js/Express", "REST/GraphQL", "MongoDB/PostgreSQL", "Autenticación"],
-    gradient: "from-blue-500 to-cyan-500",
-    delay: 0.3,
-    cardColor: "bg-gradient-to-br from-blue-900/20 to-cyan-900/20",
-    bgImage: "/images/backend-bg.jpg"
-  },
-  {
-    icon: <Shield className="w-8 h-8" />,
-    title: "Seguridad Web",
-    description: "Aplicación de mejores prácticas para proteger tus aplicaciones y datos.",
-    features: ["JWT/OAuth", "Encriptación", "OWASP", "Auditoría"],
-    gradient: "from-green-500 to-emerald-500",
-    delay: 0.4,
-    cardColor: "bg-gradient-to-br from-emerald-900/20 to-green-900/20",
-    bgImage: "/images/security-bg.jpg"
-  },
-  {
-    icon: <Monitor className="w-8 h-8" />,
-    title: "Apps de Escritorio",
-    description: "Desarrollo aplicaciones de escritorio para gestión y productividad.",
-    features: ["Electron", "Windows/macOS", "Auto-updates", "Native APIs"],
-    gradient: "from-yellow-500 to-amber-500",
-    delay: 0.5,
-    cardColor: "bg-gradient-to-br from-amber-900/20 to-yellow-900/20",
-    bgImage: "/images/desktop-bg.jpg"
-  },
-  {
-    icon: <Smartphone className="w-8 h-8" />,
-    title: "Apps Móviles Android",
-    description: "Creo aplicaciones móviles nativas y multiplataforma para Android.",
-    features: ["React Native", "Android Native", "Firebase", "Play Store"],
-    gradient: "from-pink-500 to-rose-500",
-    delay: 0.6,
-    cardColor: "bg-gradient-to-br from-rose-900/20 to-pink-900/20",
-    bgImage: "/images/mobile-bg.jpg"
-  },
-];
+import { services } from "../data/profile";
+import { gradientClass, litStyle } from "../lib/gradients";
+import { useSpotlight } from "../hooks/useUi";
+import GradientTile from "./ui/GradientTile";
+import Reveal from "./ui/Reveal";
+import Section from "./ui/Section";
 
-// Componente wrapper para usar TiltedCard con servicios
-const ServiceCard = ({ servicio, isMobile }) => {
+const EASE = [0.16, 1, 0.3, 1];
+
+function ServiceCard({ service, index }) {
+  const onMouseMove = useSpotlight();
+  const reduced = useReducedMotion();
+
   return (
-    <motion.div
-      initial={isMobile ? false : { opacity: 0, y: 20 }}
-      whileInView={isMobile ? {} : { opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.4 }}
-      className={`group ${servicio.cardColor} rounded-2xl p-6 border border-white/10 hover:border-cyan-400/30 transition-all duration-200 flex flex-col`}
+    <motion.article
+      initial={reduced ? { opacity: 0 } : { opacity: 0, y: 28 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.2 }}
+      transition={{ duration: 0.6, delay: (index % 3) * 0.09, ease: EASE }}
+      onMouseMove={onMouseMove}
+      style={litStyle(service.gradient)}
+      className="panel panel-lit spotlight group flex flex-col rounded-2xl p-6 transition-transform duration-500 ease-out hover:-translate-y-1.5"
     >
-      {/* ICON */}
-      <div className={`w-14 h-14 rounded-xl bg-gradient-to-r ${servicio.gradient} flex items-center justify-center text-white mb-4`}>
-        {servicio.icon}
+      <div className="relative z-10 flex flex-1 flex-col">
+        <div className="flex items-start justify-between gap-4">
+          <GradientTile Icon={service.Icon} gradient={service.gradient} />
+
+          <span
+            aria-hidden="true"
+            className="font-mono text-xs text-ink-600 transition-colors duration-500 group-hover:text-brand-400/70"
+          >
+            0{index + 1}
+          </span>
+        </div>
+
+        <h3 className="mt-5 font-display text-lg font-bold text-ink-50 transition-colors duration-300 group-hover:text-brand-200">
+          {service.title}
+        </h3>
+
+        <p className="mt-2.5 text-sm leading-relaxed text-ink-400">
+          {service.description}
+        </p>
+
+        <ul className="mt-5 flex flex-wrap gap-1.5">
+          {service.features.map((feature) => (
+            <li key={feature} className="chip">
+              {feature}
+            </li>
+          ))}
+        </ul>
+
+        <span className="mt-6 inline-flex items-center gap-2 text-sm font-medium text-brand-300">
+          Consultar
+          <ArrowRight
+            size={15}
+            className="transition-transform duration-300 group-hover:translate-x-1.5"
+          />
+        </span>
       </div>
 
-      {/* TITLE */}
-      <h3 className="text-lg font-bold text-white mb-2">
-        {servicio.title}
-      </h3>
+      {/* gradient wash that fades in on hover */}
+      <span
+        aria-hidden="true"
+        className={`pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-br opacity-0 transition-opacity duration-500 group-hover:opacity-[0.07] ${gradientClass(
+          service.gradient
+        )}`}
+      />
+    </motion.article>
+  );
+}
 
-      {/* DESC */}
-      <p className="text-gray-400 text-sm mb-4 flex-1">
-        {servicio.description}
-      </p>
-
-      {/* FEATURES (SIN motion) */}
-      <ul className="space-y-1 mb-4">
-        {servicio.features.map((f) => (
-          <li key={f} className="text-xs text-gray-300 flex items-center gap-2">
-            <div className={`w-1.5 h-1.5 rounded-full bg-gradient-to-r ${servicio.gradient}`} />
-            {f}
-          </li>
+export default function Servicios() {
+  return (
+    <Section
+      id="servicios"
+      eyebrow="Qué hago"
+      title="Servicios"
+      accent="que ofrezco"
+      description="Un stack completo, del diseño de la interfaz hasta la base de datos. Elegí un área y lo llevamos adelante."
+    >
+      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 lg:gap-6">
+        {services.map((service, index) => (
+          <ServiceCard key={service.id} service={service} index={index} />
         ))}
-      </ul>
+      </div>
 
       {/* CTA */}
-      <div className="text-cyan-400 text-sm flex items-center gap-2 mt-auto">
-        <span>Más info</span>
-        <ArrowRight size={14} />
-      </div>
-    </motion.div>
-  );
-};
+      <Reveal delay={0.1} className="mt-14">
+        <div className="panel panel-lit relative overflow-hidden rounded-2xl px-6 py-10 text-center sm:px-10 sm:py-12">
+          <div
+            aria-hidden="true"
+            className="absolute -top-24 left-1/2 h-48 w-[36rem] -translate-x-1/2 rounded-full bg-brand-500/15 blur-3xl"
+          />
 
-export default function Servicios({ isMobile }) {
-  return (
-    <section id="servicios" className="py-16 px-4">
-      <div className="max-w-6xl mx-auto">
-
-        {/* HEADER SIMPLE */}
-        <div className="text-center mb-10">
-          <h2 className="text-3xl font-bold text-white">
-            Mis <span className="text-cyan-400">Servicios</span>
-          </h2>
-          <p className="text-gray-400 mt-2">
-            Soluciones tecnológicas para tu negocio
-          </p>
-        </div>
-
-        {/* GRID */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {servicios.map((s) => (
-            <ServiceCard key={s.title} servicio={s} isMobile={isMobile} />
-          ))}
-        </div>
-
-        {/* CTA */}
-        <div className="text-center mt-10">
-          <div className="bg-cyan-500/5 rounded-xl p-6 border border-cyan-500/20">
-            <h3 className="text-lg font-bold text-white mb-2">
-              ¿Proyecto en mente?
+          <div className="relative z-10 flex flex-col items-center gap-4">
+            <span className="eyebrow">
+              <Check size={13} />
+              Sin compromiso
+            </span>
+            <h3 className="display-2 text-3xl text-ink-50 sm:text-4xl">
+              ¿Tenés un proyecto <span className="gradient-text">en mente?</span>
             </h3>
-            <p className="text-gray-400 text-sm mb-4">
-              Hablemos y lo hacemos realidad
+            <p className="lede mx-auto text-center">
+              Contame qué querés resolver y te digo cómo lo encararía, con
+              plazos y alcance claros.
             </p>
-
-            <a
-              href="#contacto"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-cyan-600 text-white rounded-xl hover:bg-cyan-500 transition"
-            >
-              Contactar
-              <ArrowRight size={16} />
+            <a href="#contacto" className="btn btn-primary btn-shine mt-2">
+              Empezar un proyecto
+              <ArrowRight size={17} />
             </a>
           </div>
         </div>
-
-      </div>
-    </section>
+      </Reveal>
+    </Section>
   );
 }
